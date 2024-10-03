@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Yeni Evcil Hayvan Bildirisi</title>
+    <style>
+        img {
+            max-width: 300px; /* Resimlerin genişliğini sınırlamak için */
+            display: block; /* Resimleri blok düzende hizalamak için */
+            margin: 10px auto; /* Resimlerin üstünde ve altında boşluk bırakmak için */
+        }
+    </style>
+</head>
+<body>
+    <h1>Yeni Evcil Hayvan Bildirisi</h1>
+    <p th:text="${message}"></p>
+    <div th:each="imageUrl : ${imageUrls}">
+        <img th:src="${imageUrl}" alt="Pet Image"/>
+    </div>
+    <p>Contact: <span th:text="${publisherEmail}"></span></p> 
+    <!-- Footer Ekleme -->
+    <footer style="margin-top: 20px; text-align: left;">
+        <p>Saygılarla,<br></br> Peata Geliştiricileri</p>
+    </footer>
+</body>
+</html>
