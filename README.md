@@ -41,4 +41,4 @@ The project follows a standard Spring Boot application structure:
 - `utils`: Utility classes and helper functions
 
 ## API Documentation
-API documentation is available through Swagger UI. After running the application, visit:
+API documentation is available through Swagger UI.
