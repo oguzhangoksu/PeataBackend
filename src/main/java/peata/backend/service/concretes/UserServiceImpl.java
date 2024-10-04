@@ -6,7 +6,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +14,6 @@ import peata.backend.entity.User;
 import peata.backend.listeners.DynamicListenerService;
 import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.UserService;
-import peata.backend.utils.UserPrincipal;
 
 
 @Service

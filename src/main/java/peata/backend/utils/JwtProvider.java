@@ -6,7 +6,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import peata.backend.utils.exceptions.JwtAuthenticationException;
 
 import java.util.logging.Logger;
 import java.util.Date;

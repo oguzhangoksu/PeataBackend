@@ -148,10 +148,17 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 			<version>3.3.0</version>
 		</dependency>
-		
+		<!-- HTML Template for Notification System-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- Rate Limiter-->
+		<dependency>
+			<groupId>com.github.vladimir-bukhtoyarov</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.0.1</version>
 		</dependency>
 
 			
@@ -172,6 +179,10 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

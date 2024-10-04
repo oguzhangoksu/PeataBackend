@@ -17,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import peata.backend.utils.JwtAuthenticationEntryPoint;
 import peata.backend.utils.JwtAuthenticationFilter;
+import peata.backend.utils.RateLimitFilter;
 
 import java.util.Arrays;
 
@@ -28,6 +29,10 @@ public class SecurityConfig {
 
      @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private RateLimitFilter rateLimitFilter; // Inject the RateLimitFilter
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -43,6 +48,7 @@ public class SecurityConfig {
             )
             .exceptionHandling(management-> management.authenticationEntryPoint(new JwtAuthenticationEntryPoint()))
             .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)  // Add RateLimitFilter before JwtAuthenticationFilter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .csrf(csrf -> csrf.disable()); // Disable CSRF using Lambda DSL
                               
