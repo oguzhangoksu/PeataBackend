@@ -222,14 +222,14 @@
   <script>
     const localhost = 'http://localhost:8080';
     const vdsApi ="http://2.59.119.54:8080";
-    const api =localhost;
+    const api =vdsApi;
     const token =localStorage.getItem('token')
     document.addEventListener("DOMContentLoaded", async function() {
         if(token == null){
           window.location.href = `${localhost}/adminpanel/login`;
         }
         else{
-            axios.get(`${localhost}/token/validate`,{
+            axios.get(`${api}/token/validate`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -433,22 +433,24 @@
       
 
     async function handleDeleteApi(){
+      /*
         const data = await handleSubmition();
         if(data==undefined){
           return;
         }
-        const response = await axios.post(`http://localhost:${serverport}/deleteAdoption`,data,{
+        const response = await axios.post(`${api}/deleteAdoption`,data,{
           headers: {
             'Authorization':token
           }
         });
         if(response.data.success){
           alert("Adoption is deleted successfully");
-          window.location.href=`http://localhost:${serverport}/adminPanel/adoption`;
+          window.location.href=`${api}/adminPanel/adoption`;
         }
         else{
           alert("Adoption is not deleted");
         }
+          */
     }
 
 
