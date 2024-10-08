@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Page</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="#">Admin Page</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="container mt-5" style="text-align: center;">
+    <h1>Admin Login</h1>
+    <form action="" >
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+    
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4">
+    <div class="container text-center">
+      <p>&copy; 2024 PEATA. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const localhost = 'http://localhost:8080';
+    const vdsApi ="http://2.59.119.54:8080";
+    const api =localhost;
+
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.querySelector('#username').value;
+      const password = document.querySelector('#password').value;
+      console.log("username:",username);
+      console.log("password:",password)
+      try {
+        const response = await axios.post(`${api}/user/auth/login`, { 
+          username:username, 
+          password:password 
+        });
+        console.log("response:",response)
+        if (response.data.token) {
+          // Handle the token
+          console.log(response.data.token)
+          localStorage.setItem('token', response.data.token);
+          console.log('Token stored in localStorage');
+          // Redirect to a protected page or update UI
+          window.location.href = `${api}/adminpanel/dashboard.html`;  // Adjust the URL as needed
+        } else {
+          alert('Login failed: No token received');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        alert('Login failed: ' + (error.response?.data?.message || 'Unknown error'));
+      }
+    });
+
+    
+
+  </script>
+
+</body>
+</html>

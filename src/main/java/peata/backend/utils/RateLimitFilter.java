@@ -43,7 +43,7 @@ public class RateLimitFilter implements Filter {
     }
 
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(10)));
+        Bandwidth limit = Bandwidth.classic(200, Refill.intervally(200, Duration.ofMinutes(1)));
         return Bucket4j.builder().addLimit(limit).build();
     }
 

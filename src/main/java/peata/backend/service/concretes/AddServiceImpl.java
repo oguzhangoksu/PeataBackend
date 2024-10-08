@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
+import org.springframework.data.domain.Sort;
 @Service
 public class AddServiceImpl implements AddService{
 
@@ -50,6 +50,7 @@ public class AddServiceImpl implements AddService{
         add.setCity(addRequest.getCity());
         add.setDistrict(addRequest.getDistrict());
         add.setDate(new Date());
+        add.setStatus(addRequest.getStatus());
         add.setAdd_type(addRequest.getAdd_type());
         User owner=userService.findUserById(addRequest.getUser_id());
         add.setUser(owner);
@@ -59,7 +60,9 @@ public class AddServiceImpl implements AddService{
         notificationServiceImpl.sendNotification(owner.getEmail(), addRequest.getCity(), add.getDistrict(),imageUrls, addRequest.getAdd_type());
         return addRepository.save(addDb);
     }
-   
+    public void save(Add add){
+        addRepository.save(add);
+    }
     
     public void delete(Long id){
         Add add =addRepository.findById(id)
@@ -71,6 +74,12 @@ public class AddServiceImpl implements AddService{
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         return convertToDto(add);
+    }
+
+    public Add findAddByIdWithOutDto(Long id){
+        Add add =addRepository.findById(id)
+            .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
+        return add;
     }
 
     public List<String> findImagesByAddId(Long id){
@@ -90,6 +99,15 @@ public class AddServiceImpl implements AddService{
         return adds.map(this::convertToDto);
     }
 
+    public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size){
+        Page<Add> adds = addRepository.findByStatus(status,PageRequest.of(page, size));
+
+        return adds.map(this::convertToDto);
+    }
+
+
+
+
     private AddDto convertToDto(Add add) {
         AddDto dto = new AddDto();
         dto.setId(add.getId());
@@ -104,10 +122,12 @@ public class AddServiceImpl implements AddService{
         dto.setDistrict(add.getDistrict());
         dto.setDate(add.getDate());
         dto.setAdd_type(add.getAdd_type());
-        dto.setStatus(add.isStatus());
+        dto.setStatus(add.getStatus());
         dto.setUser_id(add.getUser().getId());
         return dto;
     }
+
+   
 
 }
 

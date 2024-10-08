@@ -1,5 +1,6 @@
 package peata.backend.listeners;
 
+import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 
@@ -15,6 +16,7 @@ import peata.backend.service.concretes.EmailServiceImpl;
 @Service
 public class DynamicListenerService {
 
+    private final List<String> admins =Arrays.asList("yusufturhag@outlook.com", "oguzhang16@gmail.com");
     @Autowired
     private ConnectionFactory connectionFactory; // Connection to RabbitMQ
 
@@ -55,6 +57,7 @@ public class DynamicListenerService {
     // Method to handle the message after receiving it
     private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls) {
         System.out.println("Received message in " + city + "/" + district + ": " + message);
+        
 
         // Find emails of users in the same city and district
         List<String> userEmails = userService.findEmailsByCityAndDistrict(city, district, publisherEmail);
@@ -63,5 +66,8 @@ public class DynamicListenerService {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
             emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls);
         }
+        
+        emailServiceImpl.sendToAdmins(admins, publisherEmail, imageUrls);
+        
     }
 }

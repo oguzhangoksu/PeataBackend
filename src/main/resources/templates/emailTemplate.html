@@ -4,23 +4,55 @@
     <meta charset="utf-8">
     <title>Yeni Evcil Hayvan Bildirisi</title>
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         img {
             max-width: 300px; /* Resimlerin genişliğini sınırlamak için */
             display: block; /* Resimleri blok düzende hizalamak için */
-            margin: 10px auto; /* Resimlerin üstünde ve altında boşluk bırakmak için */
+            margin: 10px; /* Resimlerin üstünde ve altında boşluk bırakmak için */
+        }
+
+        .image-container {
+            display: flex; /* Flexbox kullanarak yan yana görüntülemek için */
+            flex-wrap: wrap; /* Resimlerin taşmasını önlemek için */
+            justify-content: center; /* Resimleri yatayda ortalamak için */
+        }
+
+        footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd; /* Üst ayıraç */
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .footer-logo {
+            max-width: 150px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Yeni Evcil Hayvan Bildirisi</h1>
     <p th:text="${message}"></p>
-    <div th:each="imageUrl : ${imageUrls}">
+    
+    <div class="image-container" th:each="imageUrl : ${imageUrls}">
         <img th:src="${imageUrl}" alt="Pet Image"/>
     </div>
-    <p>Contact: <span th:text="${publisherEmail}"></span></p> 
-    <!-- Footer Ekleme -->
-    <footer style="margin-top: 20px; text-align: left;">
-        <p>Saygılarla,<br></br> Peata Geliştiricileri</p>
+
+    <p>Contact: <span th:text="${publisherEmail}"></span></p>
+
+    <!-- Professional Footer -->
+    <footer>
+        <img th:src="@{https://peatabucket.s3.eu-north-1.amazonaws.com/Logo2.png}" alt="Company Logo" class="footer-logo"/>
+        <p>Saygılarla,<br> Peata Geliştiricileri</p>
+        <p>İletişim: <a href="mailto:info@peata.com">peatahelp@gmail.com</a></p>
+        <p>© 2024 Peata. All rights reserved.</p>
     </footer>
 </body>
 </html>

@@ -18,7 +18,7 @@ public class AddDto {
     private String district;
     private Date date;
     private String add_type;
-    private boolean status;
+    private int status;
     private Long user_id;
     
 

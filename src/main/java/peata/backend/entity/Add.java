@@ -3,6 +3,8 @@ package peata.backend.entity;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -67,8 +69,9 @@ public class Add {
     private String add_type;
 
     @Column(name="status",nullable = false)
-    private boolean status = false;
-
+    private int status = 0;
+    
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

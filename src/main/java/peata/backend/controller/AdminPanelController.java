@@ -43,8 +43,9 @@ public class AdminPanelController {
     description = "This endpoint requires authentication.",
     security = @SecurityRequirement(name = "bearerAuth")
     )   
-    @GetMapping("/add/getUsersWithPagination")
+    @GetMapping("/user/getUsersWithPagination")
     public ResponseEntity<Page<User>> getUsersWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
+        
         return ResponseEntity.ok(userService.getPaginatedUsers(page, size));
     }
 

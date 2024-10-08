@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Page</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" type="text/css" href="/AdminPanel/css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-custom">
+    <div class="container">
+      <a class="navbar-brand" href="#">Admin Page</a>
+      <div> 
+        <div id="adminName" class="navbar-brand" style="color: white;">Welcome Admin </div>
+      </div>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/adminPanel/adoption">Adoption List</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/adminPanel/lost">Lost List</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/adminPanel/user">User List</a>
+          </li>
+          <li>
+            <a class="nav-link"  onclick="handleLogout()">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- Content -->
+  
+  <div class="container mt-5" >
+      <div class="row">
+        <div class="col-md-6">
+          <h1>Adoption List</h1>
+        </div>
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="basic-addon1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                </svg>
+              </span>
+            </div>
+            <input id="filter" type="text" class="form-control" placeholder="Search by User ID" aria-describedby="basic-addon1">
+          </div>
+        </div>
+      </div>
+    
+      
+
+      <table id="myTable" class="table table-hover table-dark">
+        <thead>
+          <tr>
+            <th scope="col" class="headerTable">Id</th>
+            <th scope="col" class="headerTable">User Name</th>
+            <th scope="col" class="headerTable">Name</th>
+            <th scope="col" class="headerTable">Surname</th>
+            <th scope="col" class="headerTable">E-Mail</th>
+            <th scope="col" class="headerTable">City</th>
+            <th scope="col" class="headerTable">District</th>
+            <th scope="col" class="headerTable">Favorite Adds</th>
+            <th scope="col" class="headerTable">Adds</th>
+            <th scope="col" class="headerTable">Notification</th>
+
+
+
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Table rows will be added dynamically -->
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            <li class="page-item " id="prev" onclick="handlePagination('prev')">
+              <p class="page-link" >Previous</p>
+            </li>
+            <li class="page-item"><p id="page" class="page-link" >1</p></li>
+            <!-- Pagination links will be added dynamically -->
+            <li class="page-item" id="next" onclick="handlePagination('next')">
+              <p class="page-link" >Next</p>
+            </li>
+          </ul>
+      </nav>
+
+  </div>
+
+
+  <!-- Footer -->
+  
+  <footer class="bg-dark text-white py-4 ">
+    <div class="container text-center">
+      <p>&copy; 2024 PEATA. All rights reserved.</p>
+    </div>
+  </footer>
+  
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const localhost = 'http://localhost:8080';
+    const vdsApi ="http://2.59.119.54:8080";
+    const api =localhost;
+    const token =localStorage.getItem('token')
+    let page =0;
+    document.addEventListener("DOMContentLoaded", async function() {
+        console.log("token:",token)
+        if(token == null){
+          window.location.href = `${localhost}/adminpanel/login`;
+        }
+        else{
+            axios.get(`${localhost}/token/validate`,{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then((response=>{
+                console.log("response",response)
+                
+                loadDashboardContent()
+
+              
+            }))
+            .catch((error)=>{
+                console.log("Error:"+error)
+                window.location.href = `${api}/adminpanel/login.html`;
+
+            })
+
+
+        }
+    });
+
+    function loadDashboardContent(){
+        handleAPI();
+    }
+
+
+
+
+
+    //API 
+    async function handleAPI(page){
+        axios.get(`${api}/panel/user/getUsersWithPagination`, {
+            params: {
+                page: page,
+                size: 10,
+            },
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            // Handle successful response
+            console.log('Data received:', response.data.content);
+            // TODO: Process the data and update the UI
+            addDataToTable(response.data.content);
+        })
+        .catch(error => {
+            // Handle error
+            console.error('Error fetching status:', error);
+            // TODO: Show error message to user
+        });
+    }
+
+    function handlePagination(direction) {
+        if (direction === 'prev' && page > 0) {
+            page--;
+        } else if (direction === 'next') {
+            page++;
+        }
+        
+        clearTable();
+        handleAPI(page);
+        updatePageDisplay();
+    }
+    function updatePageDisplay() {
+        document.getElementById('page').textContent = page + 1;
+        document.getElementById('prev').classList.toggle('disabled', page === 0);
+        // You might want to disable the 'next' button if you're on the last page
+        // This would require knowing the total number of pages
+    }
+
+    function clearTable(){
+      const tableRows = document.querySelectorAll("#myTable tbody tr");
+      tableRows.forEach(row => {
+        row.remove();
+      });
+    }
+
+    function addDataToTable(data){
+      for (let i = 0; i < data.length; i++) {
+        const row = document.createElement("tr");
+        row.setAttribute("data-href", `http://localhost:3000/adminPanel/user/${data[i].user_id}`);
+        row.innerHTML = `
+        <td scope="row">${data[i].id}</td>
+        <td>${data[i].username}</td>
+        <td>${data[i].name}</td>
+        <td>${data[i].surname}</td>
+        <td>${data[i].email}</td>
+        <td>${data[i].city}</td>
+        <td>${data[i].district}</td>
+        <td>${data[i].favoriteAdds}</td>
+        <td>
+            <div style="max-height: 100px; overflow-y: auto;">
+                ${data[i].ads.map(ad => `<div>ID: ${ad.id}, </div>`).join('')}
+            </div>
+        </td>
+        <td>${data[i].isAllowedNotification}</td>
+        `;
+        document.querySelector("#myTable tbody").appendChild(row);
+      }
+      clicktable();
+    }
+
+
+    function handleClear(){
+      clearTable();
+      addDataToTable(data.slice(0,pageNumber*page));
+      document.getElementById("status").innerHTML="Status";
+      document.getElementById("type").innerHTML="Type";
+
+
+    }
+
+    function handleLogout(){
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('userCredential');
+      window.location.href = `${api}/adminpanel/login.html`;
+
+    }
+
+
+  </script>
+</body>
+
+</html>

@@ -17,7 +17,10 @@ public interface AddService {
     public void delete(Long id);
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException;
     public AddDto findAddById(Long id);
+    public Add findAddByIdWithOutDto(Long id);
     public List<Add> allAdds();
     public List<String> findImagesByAddId(Long id);
     public Page<AddDto> getPaginatedAdds(int page, int size);
+    public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size);
+    public void save(Add add);
 }

@@ -16,6 +16,7 @@ public class UserDto {
     private String phone;
     private String city;
     private String district;
+    private int status;
     private List<Long> favoriteAdds= new ArrayList<>();
     private String role = "ROLE_USER";
     private Boolean isAllowedNotification=false;

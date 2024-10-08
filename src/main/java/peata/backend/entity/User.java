@@ -2,6 +2,7 @@ package peata.backend.entity;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.HashSet;
 import java.util.List;
@@ -71,6 +72,7 @@ public class User {
     @Column(name="favoriteAdds")
     private List<Long> favoriteAdds;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
     private Set<Add> ads = new HashSet<>();
 

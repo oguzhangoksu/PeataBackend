@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class AddRequest {
+    private Long id;
     private String animal_name;
     private String age;
     private String breed;
@@ -14,11 +15,13 @@ public class AddRequest {
     private String city;
     private String district;
     private String add_type;
+    private int status=0;
     private Long user_id;
 
     @Override
     public String toString() {
         return "AddRequest{" +
+                "id="+id+'\'' +
                 "animal_name='" + animal_name + '\'' +
                 ", age='" + age + '\'' +
                 ", breed='" + breed + '\'' +
