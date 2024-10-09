@@ -430,27 +430,23 @@
 
 
     }
-      
 
     async function handleDeleteApi(){
-      /*
-        const data = await handleSubmition();
-        if(data==undefined){
-          return;
+        var id= await document.getElementById("id").value;
+        if(id==undefined|| id==""){
+          alert("ID is null")
         }
-        const response = await axios.post(`${api}/deleteAdoption`,data,{
+        const response = await axios.get(`${api}/panel/add/delete`,{
+          params:{
+            id:id
+          },
           headers: {
-            'Authorization':token
+            'Authorization':`Bearer ${token}`
           }
         });
-        if(response.data.success){
-          alert("Adoption is deleted successfully");
-          window.location.href=`${api}/adminPanel/adoption`;
-        }
-        else{
-          alert("Adoption is not deleted");
-        }
-          */
+        console.log("Delete response:",response)
+        
+          
     }
 
 

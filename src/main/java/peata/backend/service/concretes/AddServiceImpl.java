@@ -67,6 +67,7 @@ public class AddServiceImpl implements AddService{
     public void delete(Long id){
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
+        s3Service.deleteFolder(""+add.getId()+"/");
         addRepository.delete(add);;
     }
     
@@ -106,6 +107,10 @@ public class AddServiceImpl implements AddService{
     }
 
 
+    public boolean existsById(Long id) {
+        // Use the repository's existsById method to check for existence
+        return addRepository.existsById(id);
+    }
 
 
     private AddDto convertToDto(Add add) {

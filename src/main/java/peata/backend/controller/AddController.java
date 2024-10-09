@@ -11,9 +11,12 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
+import peata.backend.entity.User;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.S3Service;
+import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
+import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Requests.AddRequest;
 import peata.backend.utils.Responses.AddResponse;
 
@@ -21,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 
 
 
@@ -40,6 +45,8 @@ public class AddController {
     private AddService addService;
     @Autowired
     private S3Service s3Service;
+    @Autowired
+    private UserService userService;
 
     @Operation(summary = "Secured API ", 
     description = "This endpoint requires authentication. Data Json'nın stringe dönüştürülmüş hali "+
@@ -129,9 +136,34 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/delete")
-    public ResponseEntity<String> delete(@RequestParam Long id) {
-        addService.delete(id);
-        return ResponseEntity.ok("Add deleted");
+    public ResponseEntity<String> delete(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        String username = userPrincipal.getUsername();
+        User userDb=userService.findUserByUsername(username);
+        if (userDb == null) {
+            return ResponseEntity.badRequest().body("User not found");
+        }
+        boolean addDeleted = false;
+        Iterator<Add> iterator = userDb.getAds().iterator();
+        while (iterator.hasNext()) {
+            Add add = iterator.next();
+            if (add.getId() != null && add.getId().equals(id)) {
+                System.out.println("Removing ad with id: " + id);
+                iterator.remove();
+                
+                boolean adExists = addService.existsById(id); 
+                if (adExists) {
+                    addService.delete(id);
+                    addDeleted = true;
+                } else {
+                    return ResponseEntity.badRequest().body("Ad does not exist in the database");
+                }
+                break; 
+            }
+        }
+        if (!addDeleted) {
+            return ResponseEntity.badRequest().body("Ad ID not found in user's ads list");
+        }
+        return ResponseEntity.ok("Ad deleted");
     }
 
     

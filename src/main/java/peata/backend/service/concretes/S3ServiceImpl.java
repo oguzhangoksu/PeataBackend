@@ -9,7 +9,11 @@ import peata.backend.service.abstracts.S3Service;
 import peata.backend.utils.FileData;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -87,6 +91,53 @@ public class S3ServiceImpl implements S3Service{
         return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + filePath;
     }
 
+    public void deleteFolder(String folderName) {
+
+        // Initial request to list objects with the folder prefix
+        ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
+                .bucket(bucketName)
+                .prefix(folderName)
+                .build();
+
+        ListObjectsV2Response listObjectsResponse;
+        try {
+            do {
+                // Fetch the objects in the folder
+                listObjectsResponse = s3Client.listObjectsV2(listObjectsRequest);
+
+                // Delete each object found
+                for (S3Object s3Object : listObjectsResponse.contents()) {
+                    deleteFile(s3Object.key());
+                }
+
+                // Update the request to continue with the next batch (pagination)
+                String nextContinuationToken = listObjectsResponse.nextContinuationToken();
+                listObjectsRequest = listObjectsRequest.toBuilder()
+                        .continuationToken(nextContinuationToken)
+                        .build();
+
+            } while (listObjectsResponse.isTruncated());
+
+            System.out.println("Folder deleted successfully: " + folderName);
+        } catch (SdkException e) {
+            System.err.println("Failed to delete folder: " + e.getMessage());
+        }
+    }
+    
+    public void deleteFile(String filename) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucketName)
+                .key(filename)
+                .build();
+
+        try {
+            s3Client.deleteObject(deleteObjectRequest);
+            System.out.println("File deleted: " + filename);
+        } catch (SdkException e) {
+            System.err.println("Failed to delete file: " + filename + " - " + e.getMessage());
+        }
+    }
+
     private String determineContentType(String fileName) {
         if (fileName.endsWith(".png")) {
             return "image/png";
@@ -98,6 +149,8 @@ public class S3ServiceImpl implements S3Service{
         // Add more file types if needed
         return "application/octet-stream"; // Default for unknown file types
     }
+
+    
     
 
 }

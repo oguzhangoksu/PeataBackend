@@ -80,7 +80,7 @@
       <table id="myTable" class="table table-hover table-dark">
         <thead>
           <tr>
-            <th scope="col" class="headerTable">#</th>
+            <th scope="col" class="headerTable">Id</th>
             <th scope="col" class="headerTable">Name</th>
             <th scope="col" class="headerTable">Age</th>
             <th scope="col" class="headerTable">Type</th>
@@ -219,7 +219,7 @@
       for (let i = 0; i < data.length; i++) {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <th scope="row">${i+1}</th>
+            <th scope="row">${data[i].id}</th>
             <td>${data[i].animal_name}</td>
             <td>${data[i].age}</td>
             <td>${data[i].type}</td>

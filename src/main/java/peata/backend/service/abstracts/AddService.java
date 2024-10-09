@@ -23,4 +23,5 @@ public interface AddService {
     public Page<AddDto> getPaginatedAdds(int page, int size);
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size);
     public void save(Add add);
+    public boolean existsById(Long id);
 }
