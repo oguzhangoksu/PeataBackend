@@ -226,7 +226,7 @@
     const token =localStorage.getItem('token')
     document.addEventListener("DOMContentLoaded", async function() {
         if(token == null){
-          window.location.href = `${localhost}/adminpanel/login`;
+          window.location.href = `${api}/adminpanel/login`;
         }
         else{
             axios.get(`${api}/token/validate`,{
@@ -455,9 +455,8 @@
 
 
     function handleLogout(){
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('userCredential');
-      window.location.href = `http://localhost:${serverport}/adminLogin`;
+      localStorage.removeItem('token');
+      window.location.href = `${api}/adminpanel/login.html`;
     }
 
     async function handleImageLink(links) {

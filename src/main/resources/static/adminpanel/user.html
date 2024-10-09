@@ -121,7 +121,7 @@
     document.addEventListener("DOMContentLoaded", async function() {
         console.log("token:",token)
         if(token == null){
-          window.location.href = `${localhost}/adminpanel/login`;
+          window.location.href = `${api}/adminpanel/login`;
         }
         else{
             axios.get(`${api}/token/validate`,{
@@ -206,7 +206,7 @@
     function addDataToTable(data){
       for (let i = 0; i < data.length; i++) {
         const row = document.createElement("tr");
-        row.setAttribute("data-href", `http://localhost:3000/adminPanel/user/${data[i].user_id}`);
+        //row.setAttribute("data-href", `http://localhost:3000/adminPanel/user/${data[i].user_id}`);
         row.innerHTML = `
         <td scope="row">${data[i].id}</td>
         <td>${data[i].username}</td>
@@ -239,8 +239,7 @@
     }
 
     function handleLogout(){
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('userCredential');
+      localhost.removeItem('token');
       window.location.href = `${api}/adminpanel/login.html`;
 
     }

@@ -142,10 +142,10 @@
     document.addEventListener("DOMContentLoaded", async function() {
         console.log("token:",token)
         if(token == null){
-          window.location.href = `${localhost}/adminpanel/login`;
+          window.location.href = `${api}/adminpanel/login`;
         }
         else{
-            axios.get(`${localhost}/token/validate`,{
+            axios.get(`${api}/token/validate`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -272,8 +272,7 @@
     }
 
     function handleLogout(){
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('userCredential');
+      localStorage.removeItem('token');
       window.location.href = `${api}/adminpanel/login.html`;
 
     }
