@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.springframework.data.domain.Sort;
+
 @Service
 public class AddServiceImpl implements AddService{
 
@@ -38,7 +38,6 @@ public class AddServiceImpl implements AddService{
 
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException{
         
-
         Add add = new Add();
         add.setAnimal_name(addRequest.getAnimal_name());
         add.setAge(addRequest.getAge());
@@ -57,12 +56,15 @@ public class AddServiceImpl implements AddService{
         Add addDb=addRepository.save(add);
         List<String> imageUrls=s3Service.uploadFilesToFolder(Long.toString(addDb.getId()), fileDatas);
         addDb.setImages(imageUrls);
-        notificationServiceImpl.sendNotification(owner.getEmail(), addRequest.getCity(), add.getDistrict(),imageUrls, addRequest.getAdd_type());
         return addRepository.save(addDb);
     }
-    public void save(Add add){
-        addRepository.save(add);
+    public Add save(Add add,User user){
+        if(add.getStatus()==2){
+            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type());
+        }
+        return addRepository.save(add);
     }
+    
     
     public void delete(Long id){
         Add add =addRepository.findById(id)

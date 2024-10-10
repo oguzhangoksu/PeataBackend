@@ -54,7 +54,7 @@ public class User {
     @NotEmpty(message = "Email cannot be empty")
     private String email;
 
-    @Column(name="phone",nullable = false,unique = true)
+    @Column(name="phone",nullable = true,unique = true)
     private String phone;
 
     @Column(name="city",nullable = false)

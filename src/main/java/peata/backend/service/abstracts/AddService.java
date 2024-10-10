@@ -3,6 +3,7 @@ package peata.backend.service.abstracts;
 
 import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
+import peata.backend.entity.User;
 import peata.backend.utils.FileData;
 import peata.backend.utils.Requests.AddRequest;
 
@@ -22,6 +23,6 @@ public interface AddService {
     public List<String> findImagesByAddId(Long id);
     public Page<AddDto> getPaginatedAdds(int page, int size);
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size);
-    public void save(Add add);
+    public Add save(Add add,User user);
     public boolean existsById(Long id);
 }

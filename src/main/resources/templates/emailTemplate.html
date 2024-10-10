@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>Yeni Evcil Hayvan Bildirisi</title>
+    <title>PEATA Bildirisi</title>
     <style>
         body {
             display: flex;
@@ -11,30 +11,49 @@
         }
 
         img {
-            max-width: 300px; /* Resimlerin genişliğini sınırlamak için */
-            display: block; /* Resimleri blok düzende hizalamak için */
-            margin: 10px; /* Resimlerin üstünde ve altında boşluk bırakmak için */
+            max-width: 200px !important; 
+            max-height: 200px !important;
+            display: block !important; 
+            margin: 10px !important; 
         }
 
         .image-container {
-            display: flex; /* Flexbox kullanarak yan yana görüntülemek için */
-            flex-wrap: wrap; /* Resimlerin taşmasını önlemek için */
-            justify-content: center; /* Resimleri yatayda ortalamak için */
+            display: flex !important; /* Flexbox kullanarak yan yana görüntülemek için */
+            flex-wrap: wrap !important; /* Resimlerin taşmasını önlemek için */
+            justify-content: center !important; /* Resimleri yatayda ortalamak için */
+            gap: 10px !important; /* Resimler arasına boşluk bırakmak için */
         }
 
         footer {
-            margin-top: 30px;
-            padding-top: 10px;
-            border-top: 1px solid #ddd; /* Üst ayıraç */
-            text-align: center;
-            font-size: 14px;
-            color: #555;
+            margin-top: 30px !important;
+            padding-top: 10px !important;
+            border-top: 1px solid #ddd !important; /* Üst ayıraç */
+            text-align: center !important;
+            font-size: 14px !important;
+            color: #555 !important;
         }
 
         .footer-logo {
-            max-width: 150px;
-            margin-bottom: 10px;
+            max-width: 150px !important;
+            margin-bottom: 10px !important;
+            text-align: center !important;
         }
+
+        div[class*="image-container"] {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        }
+
+        /* Target any img element inside a div that contains 'image-container' */
+        div[class*="image-container"] img {
+            max-width: 300px;
+            display: block;
+            margin: 10px;
+        }
+
+
     </style>
 </head>
 <body>

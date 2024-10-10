@@ -1,55 +1,83 @@
 package peata.backend.utils;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import peata.backend.entity.User;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class UserPrincipal implements UserDetails {
-    private User user; // Assuming you have a User entity
+    private Long id;
+    private String username;
+    private String email;
+    private String password;
+    private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(User user) {
-        this.user = user;
+    public UserPrincipal(Long id, String username, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.authorities = authorities;
+    }
+    public static UserPrincipal create(User user) {
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
+
+        return new UserPrincipal(
+            user.getId(),
+            user.getUsername(),
+            user.getEmail(),
+            user.getPassword(),
+            authorities
+        );
     }
 
+    
+    public Long getId() {
+        return this.id; 
+    }
     @Override
     public String getUsername() {
-        return user.getUsername(); // Assuming your User entity has a 'username' field
+        return this.username; 
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword(); // Assuming your User entity has a 'password' field
+        return this.password; 
+    }
+    
+    public String getEmail(){
+        return this.email;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(() -> user.getRole());
+        return authorities;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // Custom logic if needed
+        return true; 
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // Custom logic if needed
+        return true; 
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Custom logic if needed
+        return true; 
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // Custom logic if needed
+        return true; 
     }
     @Override
     public String toString(){
-        return "Username:"+ getUsername()+" Password:" + getPassword() +".";
+        return "Username:"+ getUsername()+" Password:" + getPassword() + " Email:"+getEmail()+".";
     }
 }

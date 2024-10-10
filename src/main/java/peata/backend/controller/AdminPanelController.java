@@ -3,7 +3,6 @@ package peata.backend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +15,6 @@ import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
-import peata.backend.utils.UserPrincipal;
 
 import java.util.List;
 

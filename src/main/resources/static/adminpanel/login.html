@@ -28,8 +28,8 @@
     <h1>Admin Login</h1>
     <form action="" >
       <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input type="text" class="form-control" id="username" name="username" required>
+        <label for="identifier" class="form-label">Username or Email</label>
+        <input type="text" class="form-control" id="identifier" name="identifier" required>
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
@@ -58,13 +58,13 @@
     const form = document.querySelector('form');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.querySelector('#username').value;
+      const identifier = document.querySelector('#identifier').value;
       const password = document.querySelector('#password').value;
-      console.log("username:",username);
+      console.log("username:",identifier);
       console.log("password:",password)
       try {
         const response = await axios.post(`${api}/user/auth/login`, { 
-          username:username, 
+          identifier:identifier, 
           password:password 
         });
         console.log("response:",response)

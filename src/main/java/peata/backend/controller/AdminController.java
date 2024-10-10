@@ -23,7 +23,6 @@ import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Requests.LoginRequest;
-import peata.backend.utils.Responses.ErrorResponse;
 import peata.backend.utils.Responses.JwtResponse;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -104,7 +103,7 @@ public class AdminController {
         // Perform authentication logic
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
-                loginRequest.getUsername(), 
+                loginRequest.getIdentifier(), 
                 loginRequest.getPassword()
             )
         );

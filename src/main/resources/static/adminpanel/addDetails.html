@@ -156,7 +156,7 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenu2" >
               <button class="dropdown-item" type="button" onclick="dropdownHandle3('Pending')" >Pending</button>
               <button class="dropdown-item" type="button" onclick="dropdownHandle3('Rejected')" >Rejected</button>
-              <button class="dropdown-item" type="button" onclick="dropdownHandle3('Aprroved')" >Aprroved</button>
+              <button class="dropdown-item" type="button" onclick="dropdownHandle3('Approved')" >Approved</button>
             </div>
           </div>
         </div>
@@ -401,6 +401,7 @@
             user_id:user_id,
             status:status,
         })
+        console.log("JSONDATA",jsonData)
         formData.append('data', jsonData);
         
         axios.post(`${api}/add/update`, formData, {
@@ -416,8 +417,8 @@
             if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
-                console.error('Error response:', error.response.data);
-                console.error('Error status:', error.response.status);
+                console.error('Error response:', error.response);
+               
             } else if (error.request) {
                 // The request was made but no response was received
                 console.error('Error request:', error.request);

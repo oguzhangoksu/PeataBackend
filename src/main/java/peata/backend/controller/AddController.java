@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
@@ -212,7 +211,7 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )    
     @PostMapping("/update")
-    public ResponseEntity<String> update(@RequestParam("images") List<MultipartFile> files,@RequestParam("data") String jsonData) {
+    public ResponseEntity<?> update(@RequestParam("images") List<MultipartFile> files,@RequestParam("data") String jsonData) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
@@ -224,11 +223,11 @@ public class AddController {
                 addDb.setBreed(addRequest.getBreed());
                 addDb.setCity(addRequest.getCity());
                 addDb.setDescription(addRequest.getDescription());
-                addDb.setDistrict(addDb.getDistrict());
+                addDb.setDistrict(addRequest.getDistrict());
                 addDb.setGender(addRequest.getGender());
                 addDb.setStatus(addRequest.getStatus());
                 addDb.setAdd_type(addRequest.getAdd_type());
-                addService.save(addDb);
+                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
             }
             else{
                 for (MultipartFile file : files) {
@@ -251,13 +250,12 @@ public class AddController {
                 addDb.setBreed(addRequest.getBreed());
                 addDb.setCity(addRequest.getCity());
                 addDb.setDescription(addRequest.getDescription());
-                addDb.setDistrict(addDb.getDistrict());
+                addDb.setDistrict(addRequest.getDistrict());
                 addDb.setGender(addRequest.getGender());
                 addDb.setStatus(addRequest.getStatus());
-                addService.save(addDb);
+                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
             }
             
-            return ResponseEntity.ok("Add updated");
 
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
