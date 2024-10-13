@@ -68,6 +68,12 @@ public class Add {
     @Column(name="add_type",nullable = false)
     private String add_type;
 
+    @Column(name="phone",nullable = true)
+    private String phone;
+
+    @Column(name="email",nullable = true)
+    private String email;
+
     @Column(name="status",nullable = false)
     private int status = 0;
     

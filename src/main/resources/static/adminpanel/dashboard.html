@@ -90,6 +90,8 @@
             <th scope="col" class="headerTable">Date</th>
             <th scope="col" class="headerTable" style="width: 100px;">Add Type</th>
             <th scope="col" class="headerTable">Owner Id</th>
+            <th scope="col" class="headerTable">Phone</th>
+            <th scope="col" class="headerTable">E-mail</th>
             <th scope="col" class="headerTable">Image</th>
 
           </tr>
@@ -230,6 +232,8 @@
             <td>${handledate(data[i].date)}</td>
             <td>${data[i].add_type}</td>
             <td>${data[i].user_id}</td>
+            <td>${data[i].phone}</td>
+            <td>${data[i].email}</td>
             <td>${getImagesHtml(data[i].images)}></td>
         
         `;

@@ -1,6 +1,5 @@
 package peata.backend.listeners;
 
-import java.util.Arrays;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 
@@ -16,7 +15,7 @@ import peata.backend.service.concretes.EmailServiceImpl;
 @Service
 public class DynamicListenerService {
 
-    private final List<String> admins =Arrays.asList("yusufturhag@outlook.com", "oguzhang16@gmail.com");
+    
     @Autowired
     private ConnectionFactory connectionFactory; // Connection to RabbitMQ
 
@@ -67,7 +66,7 @@ public class DynamicListenerService {
             emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls);
         }
         
-        emailServiceImpl.sendToAdmins(admins, publisherEmail, imageUrls);
         
     }
+
 }

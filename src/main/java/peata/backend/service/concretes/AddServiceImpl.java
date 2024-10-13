@@ -31,6 +31,8 @@ public class AddServiceImpl implements AddService{
     private UserService userService;
     @Autowired
     private S3Service s3Service;
+    @Autowired
+    private EmailServiceImpl emailServiceImpl;
 
     @Autowired
     private NotificationServiceImpl notificationServiceImpl;
@@ -51,10 +53,15 @@ public class AddServiceImpl implements AddService{
         add.setDate(new Date());
         add.setStatus(addRequest.getStatus());
         add.setAdd_type(addRequest.getAdd_type());
+        add.setPhone(addRequest.getPhone());
+        add.setEmail(addRequest.getEmail());
         User owner=userService.findUserById(addRequest.getUser_id());
         add.setUser(owner);
         Add addDb=addRepository.save(add);
         List<String> imageUrls=s3Service.uploadFilesToFolder(Long.toString(addDb.getId()), fileDatas);
+        if(add.getStatus()==0){
+            emailServiceImpl.sendToAdmins(owner.getEmail(), imageUrls, addDb.getId());
+        }
         addDb.setImages(imageUrls);
         return addRepository.save(addDb);
     }
@@ -129,6 +136,8 @@ public class AddServiceImpl implements AddService{
         dto.setDistrict(add.getDistrict());
         dto.setDate(add.getDate());
         dto.setAdd_type(add.getAdd_type());
+        dto.setPhone(add.getPhone());
+        dto.setEmail(add.getEmail());
         dto.setStatus(add.getStatus());
         dto.setUser_id(add.getUser().getId());
         return dto;

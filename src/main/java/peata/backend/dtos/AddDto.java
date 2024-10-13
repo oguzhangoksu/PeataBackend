@@ -19,6 +19,8 @@ public class AddDto {
     private Date date;
     private String add_type;
     private int status;
+    private String phone;
+    private String email;
     private Long user_id;
     
 

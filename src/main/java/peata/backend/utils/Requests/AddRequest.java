@@ -15,6 +15,8 @@ public class AddRequest {
     private String city;
     private String district;
     private String add_type;
+    private String phone;
+    private String email;
     private int status=0;
     private Long user_id;
 

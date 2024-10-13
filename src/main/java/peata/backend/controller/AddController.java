@@ -61,6 +61,8 @@ public class AddController {
                 "                    add_type:add_type,\r\n" + //
                 "                    user_id:user_id,\r\n" + //
                 "                    status:status\r\n" + //
+                "                    email:email\r\n" + //
+                "                    phone:phone\r\n" + //
                 "                })",
     security = @SecurityRequirement(name = "bearerAuth")
     )   
@@ -207,6 +209,8 @@ public class AddController {
                 "                    add_type:add_type,\r\n\n" + //
                 "                    user_id:user_id,\r\n\n" + //
                 "                    status:status\r\n\n" + //
+                "                    email:email\r\n" + //
+                "                    phone:phone\r\n" + //
                 "\n\nAdditional description: [Burda önemli olan bilgi şu kullanıcı resimleri değiştirmek isteyebilir bu durumda formData içerisine images boş bırakamıyoruz. Backend burda sıkıntı çıkartıyo. Bu duruumdan kurtulmak için eğer kullanıcı yeni bir resim yüklemediyse formData nın içerisinde images kısmına \"empty.txt\" file oluşturuyoruz backend gerisi hallediyo. Eğerki kullanıcı yeni bir resim eklediyse /add/save api'ındakiyle aynı mantıkta resimleri formdata'nın images kısmına ekliyoruz]",
         security = @SecurityRequirement(name = "bearerAuth")
     )    
@@ -226,7 +230,8 @@ public class AddController {
                 addDb.setDistrict(addRequest.getDistrict());
                 addDb.setGender(addRequest.getGender());
                 addDb.setStatus(addRequest.getStatus());
-                addDb.setAdd_type(addRequest.getAdd_type());
+                addDb.setPhone(addRequest.getPhone());
+                addDb.setEmail(addRequest.getEmail());
                 return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
             }
             else{
@@ -253,6 +258,8 @@ public class AddController {
                 addDb.setDistrict(addRequest.getDistrict());
                 addDb.setGender(addRequest.getGender());
                 addDb.setStatus(addRequest.getStatus());
+                addDb.setPhone(addRequest.getPhone());
+                addDb.setEmail(addRequest.getEmail());
                 return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
             }
             
