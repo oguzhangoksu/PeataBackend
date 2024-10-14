@@ -59,7 +59,6 @@ public class AddController {
                 "                    city:city,\r\n" + //
                 "                    district:district,\r\n" + //
                 "                    add_type:add_type,\r\n" + //
-                "                    user_id:user_id,\r\n" + //
                 "                    status:status\r\n" + //
                 "                    email:email\r\n" + //
                 "                    phone:phone\r\n" + //
@@ -67,10 +66,13 @@ public class AddController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @PostMapping("/save")
-    public ResponseEntity<?> handleFileUpload(@RequestParam("images") List<MultipartFile> files,@RequestParam("data") String jsonData) {
+    public ResponseEntity<?> handleFileUpload(@RequestParam("images") List<MultipartFile> files,@RequestParam("data") String jsonData, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         ObjectMapper objectMapper = new ObjectMapper();
+        String username= userPrincipal.getUsername();
+        User userDb=userService.findUserByUsername(username);
         try {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
+            addRequest.setUser_id(userDb.getId());
             List<FileData> fileDatas= new ArrayList<FileData>();
            
             for (MultipartFile file : files) {
@@ -207,10 +209,10 @@ public class AddController {
                 "                    city:city,\r\n\n" + //
                 "                    district:district,\r\n\n" + //
                 "                    add_type:add_type,\r\n\n" + //
-                "                    user_id:user_id,\r\n\n" + //
                 "                    status:status\r\n\n" + //
                 "                    email:email\r\n" + //
                 "                    phone:phone\r\n" + //
+            
                 "\n\nAdditional description: [Burda önemli olan bilgi şu kullanıcı resimleri değiştirmek isteyebilir bu durumda formData içerisine images boş bırakamıyoruz. Backend burda sıkıntı çıkartıyo. Bu duruumdan kurtulmak için eğer kullanıcı yeni bir resim yüklemediyse formData nın içerisinde images kısmına \"empty.txt\" file oluşturuyoruz backend gerisi hallediyo. Eğerki kullanıcı yeni bir resim eklediyse /add/save api'ındakiyle aynı mantıkta resimleri formdata'nın images kısmına ekliyoruz]",
         security = @SecurityRequirement(name = "bearerAuth")
     )    

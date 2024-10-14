@@ -15,7 +15,7 @@ public interface UserService {
     public void delete(Long id);
     public List<User> allUsers();
     public User findUserById(Long id);
-    public Set<Add> findUsersAddsById(Long id);
+    public Set<Add> findUsersAddsById(String username);
     public Page<User> getPaginatedUsers(int page, int size);
     public boolean changeNotificationStatus(User user);
     public boolean isUsernameExist(String username);

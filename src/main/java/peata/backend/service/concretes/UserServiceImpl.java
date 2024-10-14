@@ -60,8 +60,8 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    public Set<Add> findUsersAddsById(Long id){
-        User user =userRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("User with ID " + id + " not found"));
+    public Set<Add> findUsersAddsById(String username){
+        User user =userRepository.findByUsername(username).orElseThrow(()-> new EntityNotFoundException("User with Username " + username + " not found"));
         return user.getAds();
     }
     

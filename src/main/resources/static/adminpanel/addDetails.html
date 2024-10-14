@@ -425,7 +425,7 @@
         console.log("JSONDATA",jsonData)
         formData.append('data', jsonData);
         
-        axios.post(`${api}/add/update`, formData, {
+        axios.post(`${api}/panel/add/update`, formData, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'multipart/form-data'

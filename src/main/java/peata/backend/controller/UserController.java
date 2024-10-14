@@ -126,8 +126,8 @@ public class UserController {
     )  
 
     @GetMapping("/findUsersAddsById")
-    public ResponseEntity<Set<Add>> findUsersAddsById(@RequestParam() Long id) {
-        return ResponseEntity.ok(userService.findUsersAddsById(id));
+    public ResponseEntity<Set<Add>> findUsersAddsById(@AuthenticationPrincipal UserPrincipal userPrincipal,@RequestParam() Long id) {
+        return ResponseEntity.ok(userService.findUsersAddsById(userPrincipal.getUsername()));
     }
 
     @Operation(summary = "Secured API", 
