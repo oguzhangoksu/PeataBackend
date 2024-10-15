@@ -123,14 +123,6 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
     }
     
-    @Operation(summary = "Secured API", 
-               description = "This endpoint retrieves a list of users with pagination support, allowing clients to specify the page number and size.",
-               security = @SecurityRequirement(name = "bearerAuth")
-               )       
-    @GetMapping("/getUsersWithPagination")
-    public ResponseEntity<Page<User>> getUsersWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.getPaginatedUsers(page, size));
-    }
 
 
     @Operation(summary = "Secured API", 
