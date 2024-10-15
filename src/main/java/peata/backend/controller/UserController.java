@@ -18,8 +18,10 @@ import peata.backend.entity.User;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
+import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Responses.JwtResponse;
+import peata.backend.utils.Responses.UserResponse;
 import peata.backend.dtos.UserDto;
 
 
@@ -52,14 +54,16 @@ public class UserController {
     
     @Autowired
     private AuthenticationManager authenticationManager;
-
+    
+    @Autowired
+    private UserResponseMapper userResponseMapper;
 
 
 
     
     @Operation(
         summary = "Public API",
-        description = "This endpoint does not require authentication."
+        description = "Description: This endpoint allows new users to register by providing their details. It encrypts the password and saves the user in the database."
     )
     @PostMapping("/auth/register")
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
@@ -90,7 +94,7 @@ public class UserController {
 
     @Operation(
         summary = "Public API",
-        description = "This endpoint does not require authentication."
+        description = "This endpoint allows users to log in by providing their identifier (username or email) and password. It authenticates the user and generates a JWT token"
     )
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -101,17 +105,26 @@ public class UserController {
                 loginRequest.getPassword()
             )
         );
-
+        
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // Generate JWT Token
         String jwt = jwtProvider.generateToken(authentication);
-        
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
-    
+
+    @Operation(summary = "Secured API", 
+               description = "This endpoint returns the authenticated user's information based on the JWT token provided in the request.",
+               security = @SecurityRequirement(name = "bearerAuth")
+               )       
+    @GetMapping("/getUserInformation")
+    public ResponseEntity<UserResponse> getUserInformation(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User userDb=userService.findUserByUsername(userPrincipal.getUsername()); 
+        UserResponse userResponse =userResponseMapper.toResponse(userDb);
+        return ResponseEntity.ok(userResponse);
+    }
     
     @Operation(summary = "Secured API", 
-               description = "This endpoint requires authentication.",
+               description = "This endpoint retrieves a list of users with pagination support, allowing clients to specify the page number and size.",
                security = @SecurityRequirement(name = "bearerAuth")
                )       
     @GetMapping("/getUsersWithPagination")
@@ -121,29 +134,34 @@ public class UserController {
 
 
     @Operation(summary = "Secured API", 
-    description = "This endpoint requires authentication.",
+    description = "This endpoint returns a set of ads associated with the currently authenticated user.",
     security = @SecurityRequirement(name = "bearerAuth")
     )  
 
     @GetMapping("/findUsersAddsById")
-    public ResponseEntity<Set<Add>> findUsersAddsById(@AuthenticationPrincipal UserPrincipal userPrincipal,@RequestParam() Long id) {
+    public ResponseEntity<Set<Add>> findUsersAddsById(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         return ResponseEntity.ok(userService.findUsersAddsById(userPrincipal.getUsername()));
     }
 
     @Operation(summary = "Secured API", 
-    description = "This endpoint requires authentication.",
-    security = @SecurityRequirement(name = "bearerAuth")
+        description = "This endpoint allows authenticated users to delete their own account.",
+        security = @SecurityRequirement(name = "bearerAuth")
     )     
     @GetMapping("/delete")
-    public ResponseEntity<String> delete(@RequestParam() Long id, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> delete(@AuthenticationPrincipal UserPrincipal userPrincipal ) {
         String username = userPrincipal.getUsername();
-        User userToDelete = userService.findUserById(id);
+        User userToDelete = userService.findUserByUsername(username);
         if (!userToDelete.getUsername().equals(username)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to delete this user.");
         }
-        userService.delete(id);
+        userService.delete(userToDelete.getId());
         return ResponseEntity.ok("User deleted");
     }
+
+    @Operation(summary = "Secured API", 
+    description = "This endpoint updates the notification preference for the user. It sends a notification email based on the updated status.",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )  
 
     @GetMapping("/changeNotificationStatus")
     public ResponseEntity<String> changeNotificationStatus(@RequestParam() Long id) {
@@ -157,6 +175,11 @@ public class UserController {
         
     }
 
+
+    @Operation(summary = "Secured API", 
+    description = "This endpoint allows an authenticated user to update their information, including username, name, surname, password, email, and phone. It checks for unique constraints on username and email before updating.",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )  
     @PostMapping("/update")
     public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto,@RequestParam() Long id, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         String username = userPrincipal.getUsername();
@@ -182,9 +205,10 @@ public class UserController {
         userService.save(userDb);
         return ResponseEntity.ok("User saved.");
     }
-    /*@AuthenticationPrincipa UserPrincipal userPrincipal */
+
+
     @Operation(summary = "Secured API", 
-    description = "This endpoint requires authentication.",
+    description = "This endpoint allows users to add an ad to their favorites list.",
     security = @SecurityRequirement(name = "bearerAuth")
     )  
 
@@ -199,7 +223,7 @@ public class UserController {
     }
 
     @Operation(summary = "Secured API", 
-    description = "This endpoint requires authentication.",
+    description = "This endpoint retrieves a list of IDs for the ads that the user has marked as favorites.",
     security = @SecurityRequirement(name = "bearerAuth")
     )  
     @GetMapping("/getFavorites")

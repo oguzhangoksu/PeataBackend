@@ -22,8 +22,10 @@ import peata.backend.entity.User;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
+import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Responses.JwtResponse;
+import peata.backend.utils.Responses.UserResponse;
 
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -42,7 +44,9 @@ public class AdminController {
     
     @Autowired
     private AuthenticationManager authenticationManager;
-    
+
+    @Autowired
+    private UserResponseMapper userResponseMapper;
 
 
     @Operation(
@@ -99,7 +103,7 @@ public class AdminController {
         description = "This endpoint does not require authentication."
     )
     @PostMapping("/auth/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
         // Perform authentication logic
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
@@ -111,7 +115,6 @@ public class AdminController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         // Generate JWT Token
         String jwt = jwtProvider.generateToken(authentication);
-        
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
 

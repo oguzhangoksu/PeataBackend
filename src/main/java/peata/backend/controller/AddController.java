@@ -104,7 +104,7 @@ public class AddController {
 
 
     @Operation(summary = "Secured API ", 
-    description = "This endpoint requires authentication.",
+    description = "Retrieves an add based on its ID. This endpoint requires user authentication.",
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/findAddById")
@@ -114,7 +114,7 @@ public class AddController {
     }
 
     @Operation(summary = "Secured API ", 
-        description = "This endpoint requires authentication.",
+        description = "Retrieves images associated with a specific ad using its ID. This endpoint also requires authentication.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/findImagesByAddId")
@@ -125,7 +125,7 @@ public class AddController {
 
 
     @Operation(summary = "Secured API ", 
-        description = "This endpoint requires authentication.",
+        description = "Fetches a paginated list of adds. User authentication is required to access this endpoint.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/getPaginatedAdds")
@@ -135,7 +135,7 @@ public class AddController {
     }
 
     @Operation(summary = "Secured API ", 
-        description = "This endpoint requires authentication.",
+        description = "Deletes an ad based on its ID. This endpoint requires user authentication and checks if the ad belongs to the authenticated user.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/delete")
@@ -171,7 +171,7 @@ public class AddController {
 
     
     @Operation(summary = "Secured API ", 
-        description = "This endpoint requires authentication.",
+        description = "Retrieves multiple adds based on a list of provided IDs. User authentication is required for this operation.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @PostMapping("/getAddsWithIds")
@@ -185,7 +185,7 @@ public class AddController {
 
 
     @Operation(summary = "Secured API ", 
-        description = "This endpoint requires authentication. status=0(Pending),status=1(Rejected),status=2(Approved) ",
+        description = "Fetches a paginated list of adds based on their status (e.g., Pending, Rejected, Approved). User authentication is required. status=0(Pending),status=1(Rejected),status=2(Approved) ",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/status")
