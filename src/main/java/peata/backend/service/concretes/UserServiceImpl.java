@@ -1,9 +1,11 @@
 package peata.backend.service.concretes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.listeners.DynamicListenerService;
 import peata.backend.repositories.UserRepository;
+import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
 
 
@@ -21,7 +24,10 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserRepository userRepository;
-
+    
+    @Lazy
+    @Autowired
+    private AddService addService;
     
     @Autowired
     private NotificationServiceImpl notificationServiceImpl;
@@ -39,10 +45,18 @@ public class UserServiceImpl implements UserService {
         
     }
 
-    public void addFavorite(Long AddId,String username){
+    public boolean addFavorite(Long AddId,String username){
         User user=findUserByUsername(username);
+
+        if(user.getFavoriteAdds()==null){
+            user.setFavoriteAdds(new ArrayList<>());
+        }
+        if(addService.findAddById(AddId)==null){
+            return false;
+        }
         user.getFavoriteAdds().add(AddId);
         userRepository.save(user);
+        return true;
     }
 
     public void delete(Long id){

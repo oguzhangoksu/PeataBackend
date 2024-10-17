@@ -207,11 +207,15 @@ public class UserController {
     @GetMapping("/addFavoriteAdds")
     public ResponseEntity<String> addFavoriteAdds(@RequestParam() Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal ) {
         String username = userPrincipal.getUsername();
+        if(userService.addFavorite(AddId, username)){
+            return ResponseEntity.ok("Added to favorites.");
+        }
+        else{
+            return ResponseEntity.badRequest().body("Ad is not exist anymore");
+        }
         
-        userService.addFavorite(AddId, username);
         
         
-        return ResponseEntity.ok("Added to favorites.");
     }
 
     @Operation(summary = "Secured API", 

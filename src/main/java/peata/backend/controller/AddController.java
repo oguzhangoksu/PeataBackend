@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.persistence.EntityNotFoundException;
 import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
@@ -20,6 +21,7 @@ import peata.backend.utils.Requests.AddRequest;
 import peata.backend.utils.Responses.AddResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,10 +42,13 @@ import java.util.Iterator;
 @RequestMapping("/add")
 public class AddController {
 
+    
     @Autowired
     private AddService addService;
     @Autowired
     private S3Service s3Service;
+
+    @Lazy
     @Autowired
     private UserService userService;
 
@@ -175,11 +180,21 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @PostMapping("/getAddsWithIds")
-    public ResponseEntity<List<AddDto>> getAddsWithIds(@RequestParam List<Long> idsList) {
-        List<AddDto> addsList= new ArrayList<>();
-        for(int i=0;i<idsList.size();i++){
-            addsList.add(addService.findAddById(idsList.get(i)));    
+        public ResponseEntity<List<AddDto>> getAddsWithIds(@RequestParam List<Long> idsList) {
+        List<AddDto> addsList = new ArrayList<>();
+        for (Long id : idsList) {
+            try {
+                AddDto addDb = addService.findAddById(id);
+                addsList.add(addDb);
+            } catch (EntityNotFoundException e) {
+                System.out.println("Add not found for ID: " + id);
+                continue; 
+            } catch (Exception e) {
+                System.out.println("An error occurred while fetching add with ID: " + id + ". Error: " + e.getMessage());
+            }
         }
+        
+        // Return the list of adds found
         return ResponseEntity.ok(addsList);
     }
 

@@ -11,7 +11,7 @@ import java.util.Set;
 
 public interface UserService {
     public User save(User user);
-    public void addFavorite(Long AddId,String username);
+    public boolean addFavorite(Long AddId,String username);
     public void delete(Long id);
     public List<User> allUsers();
     public User findUserById(Long id);

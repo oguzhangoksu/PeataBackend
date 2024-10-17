@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class User {
     private Boolean isAllowedNotification=false;
 
     @Column(name="favoriteAdds")
-    private List<Long> favoriteAdds;
+    private List<Long> favoriteAdds= new ArrayList<>();
 
     @JsonManagedReference
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
