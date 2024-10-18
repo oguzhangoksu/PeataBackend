@@ -3,20 +3,31 @@ package peata.backend.service.concretes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
+
+import java.time.LocalDateTime;
+
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import peata.backend.entity.Add;
+import peata.backend.entity.PasswordResetCode;
 import peata.backend.entity.User;
 import peata.backend.listeners.DynamicListenerService;
+import peata.backend.repositories.PasswordResetCodeRepository;
 import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
+import peata.backend.utils.GenerateCode;
 
 
 @Service
@@ -34,6 +45,18 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private DynamicListenerService dynamicListenerService;
+
+    @Autowired
+    private EmailServiceImpl emailServiceImpl;
+
+    @Autowired
+    private PasswordResetCodeRepository passwordResetCodeRepository;
+
+    @Autowired
+    private GenerateCode generateCode;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public User save(User user){
         User userDb=userRepository.save(user);
@@ -104,7 +127,71 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+   public String createPaswwordResetCode(String identifier) {
+        Optional<User> userOpt = userRepository.findByUsername(identifier);
+        System.out.println(userOpt.get());
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByEmail(identifier);
+
+            if (userOpt.isEmpty()) {
+                return "There is no such person";
+            }
+        }
+
+        User userDb = userOpt.get(); 
+
+        PasswordResetCode passwordResetCode = new PasswordResetCode();
+        passwordResetCode.setEmail(userDb.getEmail());
+        passwordResetCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
+        passwordResetCode.setCode(generateCode.generateVerificationCode());
+
+        passwordResetCodeRepository.save(passwordResetCode);
+
+        try{
+        emailServiceImpl.sendVerificationCode(passwordResetCode.getEmail(), passwordResetCode.getCode());
+        }
+        catch(MessagingException e){
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
+        }
+        
+
+        return "Password reset token generated and sent";
+    }
+        
+
+
+    public boolean validateVerificationCode(String email, String code) {
+        List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmail(email);
     
+        if (listPasswordResetCode.isEmpty()) {
+            return false; // No tokens found for the given email
+        }
+        PasswordResetCode lastOne=listPasswordResetCode.get(listPasswordResetCode.size()-1);
+        System.out.println(lastOne.getCode());
+        System.out.println(lastOne.getEmail());
+        if (lastOne.getCode().equals(code) && lastOne.getEmail().equals(email)) {
+            return  lastOne.getExpirationTime().isAfter(LocalDateTime.now());
+        }
+        return false;
+    }
+    //lastOne.getExpirationTime().isAfter(LocalDateTime.now())
+    @Transactional
+    public void updatePassword(String email, String newPassword) {
+        Optional<User> userDb=userRepository.findByEmail(email);
+        if(userDb.isPresent()){
+            userDb.get().setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(userDb.get());   
+            passwordResetCodeRepository.deleteByEmail(email);
+        }
+        else{
+            System.out.println("There is no such person : email");
+        }
+        
+       
+    }
 
     
 }
+
+

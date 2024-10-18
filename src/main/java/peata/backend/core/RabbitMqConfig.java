@@ -12,7 +12,6 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 public class RabbitMqConfig {
 
     public static final String EXCHANGE = "notifications-exchange";
-
     // Declare the topic exchange for notifications
     @Bean
     public TopicExchange topicExchange() {
@@ -36,4 +35,5 @@ public class RabbitMqConfig {
     public Binding createBinding(Queue queue, String routingKey) {
         return BindingBuilder.bind(queue).to(topicExchange()).with(routingKey);
     }
+
 }

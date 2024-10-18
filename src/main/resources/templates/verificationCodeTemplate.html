@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>PEATA Şifre Yenileme Kodu</title>
+    <style>
+         body {
+            font-family: Arial, sans-serif; /* Use a clean font */
+            line-height: 1.6; /* Improve readability */
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4; /* Light background for contrast */
+        }
+        h1 {
+            color: #333; /* Darker color for the heading */
+            text-align: center; /* Center the heading */
+        }
+        p {
+            color: #555; /* A softer color for text */
+            margin: 10px 0; /* Space out paragraphs */
+        }
+        .code {
+            display: inline-block; /* Make the code block inline */
+            background-color: #e0e0e0; /* Light gray background for code */
+            border-left: 4px solid #007bff; /* Blue left border for emphasis */
+            padding: 10px; /* Space around the code */
+            font-family: 'Courier New', Courier, monospace; /* Monospace font for code */
+            font-size: 18px; /* Larger font size for better visibility */
+            margin: 20px 0; /* Space above and below the code block */
+            border-radius: 5px; /* Rounded corners */
+        }
+         footer {
+            margin-top: 30px !important;
+            padding-top: 10px !important;
+            border-top: 1px solid #ddd !important; /* Üst ayıraç */
+            text-align: center !important;
+            font-size: 14px !important;
+            color: #555 !important;
+        }
+
+        .footer-logo {
+            max-width: 150px !important;
+            margin-bottom: 10px !important;
+            text-align: center !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>PEATA Şifre Yenileme Kodu</h1>
+    <p th:text="${message}"></p>
+    <div class="code" th:text="${code}"></div> <!-- Use a div for code styling -->
+    <!-- Professional Footer -->
+    <footer>
+        <img th:src="@{https://peatabucket.s3.eu-north-1.amazonaws.com/Logo2.png}" alt="Company Logo" class="footer-logo"/>
+        <p>Saygılarla,<br> Peata Geliştiricileri</p>
+        <p>İletişim: <a href="mailto:info@peata.com">peatahelp@gmail.com</a></p>
+        <p>© 2024 Peata. All rights reserved.</p>
+    </footer>
+</body>
+</html>

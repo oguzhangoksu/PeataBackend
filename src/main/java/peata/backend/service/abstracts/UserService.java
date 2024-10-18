@@ -22,4 +22,7 @@ public interface UserService {
     public boolean isEmailExist(String email);
     public List<String>findEmailsByCityAndDistrict(String city, String email, String publisherEmail);
     public User findUserByUsername(String username);
+    public String createPaswwordResetCode(String identifier);
+    public boolean validateVerificationCode(String email, String code);
+    public void updatePassword(String email, String newPassword);
 } 

@@ -82,5 +82,4 @@ public class Add {
     @JoinColumn(name = "user_id")
     private User user;
 
-
 }

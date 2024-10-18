@@ -19,6 +19,7 @@ import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Mapper.UserResponseMapper;
+import peata.backend.utils.Requests.ChangePassword;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Responses.JwtResponse;
 import peata.backend.utils.Responses.UserResponse;
@@ -229,6 +230,37 @@ public class UserController {
         
         return ResponseEntity.ok(user.getFavoriteAdds());
     }
+
+    @Operation(summary = "Secured API", 
+    description = "Initiates the password reset process by sending a verification code to the user's registered email or username based on the provided identifier.",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )  
+    @GetMapping("/getPasswordCode")
+    public ResponseEntity<String> getPasswordCode(@RequestParam String identifier) {
+        try{
+        return ResponseEntity.ok(userService.createPaswwordResetCode(identifier));
+        }
+        catch(Exception e  ){
+            return ResponseEntity.badRequest().body(e.toString());
+        }
+    }
+
+    @Operation(summary = "Secured API", 
+    description = "Validates the provided verification code and email, and updates the user's password if the verification is successful.",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )  
+    @PostMapping("/changePassword")
+    public ResponseEntity<String> getPasswordCode(@RequestBody ChangePassword changePassword){
+        if(userService.validateVerificationCode(changePassword.getEmail(),changePassword.getCode())){
+            userService.updatePassword(changePassword.getEmail(), changePassword.getNewPassword());
+            return ResponseEntity.ok("User's password changed");
+        }
+        else{
+            return ResponseEntity.badRequest().body("code or email is not valid.");
+        }
+    
+    }
+
 
         
 

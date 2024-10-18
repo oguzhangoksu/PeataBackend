@@ -91,4 +91,20 @@ public class EmailServiceImpl {
 
         mailSender.send(mimeMessage);
     }
+
+    public void sendVerificationCode(String to, String code) throws MessagingException{
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        helper.setTo(to);
+        helper.setSubject("Şifre Yenileme Kodu");
+        Context context = new Context();
+        context.setVariable("message", "Şifre yenileme Kodunuz:");
+        context.setVariable("code",code);
+        String htmlContent = templateEngine.process("verificationCodeTemplate", context);
+
+        helper.setText(htmlContent, true);
+        mailSender.send(mimeMessage);
+        
+    }
 }

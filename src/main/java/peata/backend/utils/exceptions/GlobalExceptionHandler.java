@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
@@ -38,4 +39,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // ... other exception handlers ...
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<String> handleMessagingExceptionException(MessagingException ex){
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ex.getMessage());
+    }
+
+    
 }
