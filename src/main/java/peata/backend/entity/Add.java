@@ -82,4 +82,14 @@ public class Add {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Override
+    public String toString() {
+        return "Add{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                // Include relevant fields but avoid circular references
+                '}';
+    }
+
 }

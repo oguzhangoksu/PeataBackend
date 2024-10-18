@@ -78,5 +78,12 @@ public class User {
     private Set<Add> ads = new HashSet<>();
 
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", favoriteAddsCount=" + (favoriteAdds != null ? favoriteAdds.size() : 0) + // Avoids direct collection reference
+                '}';
+    }
 }
