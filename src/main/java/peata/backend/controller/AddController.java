@@ -291,7 +291,16 @@ public class AddController {
     }
     
     
-
+    @Operation(summary = "Secured API ", 
+    description = "This API endpoint allows authenticated users to remove a specified ad from their favorites by providing its ID, with user authentication required for access. ",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )   
+    @GetMapping("/deleteFavoriteAdd")
+    public ResponseEntity<String> deleteFavoriteAdd(@RequestParam int AddId,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User userDb=userService.findUserByUsername(userPrincipal.getUsername());
+        userDb.getFavoriteAdds().remove(AddId);
+        return ResponseEntity.ok("Ad removed");
+    }
     
 
     
