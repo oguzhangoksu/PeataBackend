@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.PasswordResetCode;
 import peata.backend.entity.User;
@@ -74,8 +75,12 @@ public class UserServiceImpl implements UserService {
         if(user.getFavoriteAdds()==null){
             user.setFavoriteAdds(new ArrayList<>());
         }
-        if(addService.findAddById(AddId)==null){
+        AddDto add = addService.findAddById(AddId);
+        if (add == null) {
             return false;
+        }
+        if (user.getFavoriteAdds().contains(AddId)) {
+            return true; // Ad is already in favorites, no need to add again
         }
         user.getFavoriteAdds().add(AddId);
         userRepository.save(user);
@@ -130,11 +135,11 @@ public class UserServiceImpl implements UserService {
 
    public String createPaswwordResetCode(String identifier) {
         Optional<User> userOpt = userRepository.findByUsername(identifier);
-        System.out.println(userOpt.get());
-        if (userOpt.isEmpty()) {
+        System.out.println(userOpt.isPresent() ? userOpt.get() : "User not found by username");
+        if (!userOpt.isPresent()) {
             userOpt = userRepository.findByEmail(identifier);
-
-            if (userOpt.isEmpty()) {
+            System.out.println(userOpt.isPresent() ? userOpt.get() : "User not found by email");
+            if (!userOpt.isPresent()) {
                 return "There is no such person";
             }
         }
@@ -149,7 +154,7 @@ public class UserServiceImpl implements UserService {
         passwordResetCodeRepository.save(passwordResetCode);
 
         try{
-        emailServiceImpl.sendVerificationCode(passwordResetCode.getEmail(), passwordResetCode.getCode());
+            emailServiceImpl.sendVerificationCode(passwordResetCode.getEmail(), passwordResetCode.getCode());
         }
         catch(MessagingException e){
             throw new RuntimeException("Failed to send verification email. Please try again later.");
@@ -189,6 +194,17 @@ public class UserServiceImpl implements UserService {
         }
         
        
+    }
+
+    public boolean deleteFavorite(User user,Long AddId){
+        boolean adExists = user.getFavoriteAdds().stream()
+                             .anyMatch(add -> add == AddId);
+        if(adExists){
+            user.getFavoriteAdds().removeIf(ad -> ad == AddId);
+            userRepository.save(user);
+            return true;
+        }
+        return false;
     }
 
     

@@ -1,6 +1,8 @@
 package peata.backend.service.concretes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Queue;
@@ -22,6 +24,9 @@ public class NotificationServiceImpl {
 
     @Autowired
     private RabbitAdmin rabbitAdmin;
+
+    private static final String EXCHANGE_NAME = "email-exchange";
+    private static final String ROUTING_KEY = "email-routing-key";
 
     // Method to send message to a specific city and district
     public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType) {
@@ -46,18 +51,26 @@ public class NotificationServiceImpl {
         System.out.println("Sent notification to " + city + "/" + district + ": " + message);
     }
 
-        public void subscribeUserToCityDistrict(String userEmail, String city, String district) {
-            String queueName = "queue-" + city + "-" + district; // Dynamic queue name
-            String routingKey = city + "." + district; // Routing key for the topic exchange
+    public void subscribeUserToCityDistrict(String userEmail, String city, String district) {
+        String queueName = "queue-" + city + "-" + district; // Dynamic queue name
+        String routingKey = city + "." + district; // Routing key for the topic exchange
 
-            // Create and declare the queue
-            Queue queue = rabbitMqConfig.createDurableQueue(queueName);
-            rabbitAdmin.declareQueue(queue); // Declare the queue
+        // Create and declare the queue
+        Queue queue = rabbitMqConfig.createDurableQueue(queueName);
+        rabbitAdmin.declareQueue(queue); // Declare the queue
 
-            // Create and declare the binding with the correct routing key
-            Binding binding = rabbitMqConfig.createBinding(queue, routingKey); 
-            rabbitAdmin.declareBinding(binding); // Declare the binding in RabbitMQ
-            System.out.println("Queue created and bound: " + queueName + " with routing key: " + routingKey);
+     
+        Binding binding = rabbitMqConfig.createBinding(queue, routingKey); 
+        rabbitAdmin.declareBinding(binding); 
+        System.out.println("Queue created and bound: " + queueName + " with routing key: " + routingKey);
+    }
+    
+    public void sendCodeVerification(String email, String code){
+        Map<String, String> message = new HashMap<>();
+
+        rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message);
+
+        System.out.println("Verification code message sent to RabbitMQ.");
     }
 
 }

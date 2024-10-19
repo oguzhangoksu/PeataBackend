@@ -25,4 +25,5 @@ public interface UserService {
     public String createPaswwordResetCode(String identifier);
     public boolean validateVerificationCode(String email, String code);
     public void updatePassword(String email, String newPassword);
+    public boolean deleteFavorite(User user,Long AddId);
 } 

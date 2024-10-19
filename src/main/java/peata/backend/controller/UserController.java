@@ -2,7 +2,6 @@ package peata.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -208,7 +207,9 @@ public class UserController {
     @GetMapping("/addFavoriteAdds")
     public ResponseEntity<String> addFavoriteAdds(@RequestParam() Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal ) {
         String username = userPrincipal.getUsername();
-        if(userService.addFavorite(AddId, username)){
+        boolean isAdded = userService.addFavorite(AddId, username);
+        if(isAdded){
+
             return ResponseEntity.ok("Added to favorites.");
         }
         else{
@@ -261,7 +262,23 @@ public class UserController {
     
     }
 
-
+    @Operation(summary = "Secured API ", 
+    description = "This API endpoint allows authenticated users to remove a specified ad from their favorites by providing its ID, with user authentication required for access. ",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )   
+    @GetMapping("/deleteFavoriteAdd")
+    public ResponseEntity<String> deleteFavoriteAdd(@RequestParam Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User userDb=userService.findUserByUsername(userPrincipal.getUsername());
+        if(userService.deleteFavorite(userDb, AddId)){
+            return ResponseEntity.ok("Ad removed");
+        }
+        else{
+            
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Ad not found in user's favorites");
+        }
+       
+    }
         
 
 }

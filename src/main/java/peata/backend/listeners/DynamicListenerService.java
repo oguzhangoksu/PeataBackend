@@ -1,12 +1,18 @@
 package peata.backend.listeners;
 
 import java.util.List;
+import java.util.Map;
+
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import jakarta.mail.MessagingException;
+
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 
 import peata.backend.service.abstracts.UserService;
@@ -67,6 +73,19 @@ public class DynamicListenerService {
         }
         
         
+    }
+
+    @RabbitListener(queues = "email-queue")
+    public void receiveMessage(Map<String, String> message) {
+        String email = message.get("email");
+        String code = message.get("code");
+
+        try {
+            emailServiceImpl.sendVerificationCode(email, code);
+            System.out.println("Verification code sent to " + email);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send verification email to " + email);
+        }
     }
 
 }

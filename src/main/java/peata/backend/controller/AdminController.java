@@ -22,10 +22,9 @@ import peata.backend.entity.User;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
-import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Responses.JwtResponse;
-import peata.backend.utils.Responses.UserResponse;
+
 
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -44,9 +43,6 @@ public class AdminController {
     
     @Autowired
     private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserResponseMapper userResponseMapper;
 
 
     @Operation(
