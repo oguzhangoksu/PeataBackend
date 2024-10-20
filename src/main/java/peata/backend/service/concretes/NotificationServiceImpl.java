@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -25,21 +27,29 @@ public class NotificationServiceImpl {
     @Autowired
     private RabbitAdmin rabbitAdmin;
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
+
     private static final String EXCHANGE_NAME = "email-exchange";
     private static final String ROUTING_KEY = "email-routing-key";
 
-    // Method to send message to a specific city and district
     public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType) {
         String message = "";
-        String routingKey = city + "." + district; // Use dynamic routing key
+        String routingKey = city + "." + district; 
     
+        logger.info("Preparing to send notification for city: {}, district: {}, with routingKey: {}", city, district, routingKey);
+
+
         // Define the message based on addType
         if ("Kayıp".equals(addType)) {
             message = "Etrafınızda kaybolan bir evcil hayvan bulunmakta. Lütfen gördüğünüz anda verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.";
         } else {
             message = "Etrafınızda sahiplenilmek isteyen bir yavrumuz bulunmakta. Eğer iletişime geçmek isterseniz verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.";
         }
-        // Send the message to the correct exchange with routing key
+
+        logger.debug("Generated message: {}", message);
+
+
         rabbitTemplate.convertAndSend("notifications-exchange", routingKey, message, messagePostProcessor -> {
             messagePostProcessor.getMessageProperties().setHeader("publisherEmail", publisherEmail);
             messagePostProcessor.getMessageProperties().setHeader("city", city);
@@ -48,29 +58,41 @@ public class NotificationServiceImpl {
             return messagePostProcessor;
         });
     
-        System.out.println("Sent notification to " + city + "/" + district + ": " + message);
+        logger.info("Notification sent to {}: {} with message: {}", city + "/" + district, routingKey, message);
     }
 
     public void subscribeUserToCityDistrict(String userEmail, String city, String district) {
         String queueName = "queue-" + city + "-" + district; // Dynamic queue name
         String routingKey = city + "." + district; // Routing key for the topic exchange
 
+        logger.info("Subscribing user {} to city: {}, district: {}", userEmail, city, district);
+
+
         // Create and declare the queue
         Queue queue = rabbitMqConfig.createDurableQueue(queueName);
         rabbitAdmin.declareQueue(queue); // Declare the queue
 
+
+        logger.debug("Queue created: {}", queueName);
+
      
         Binding binding = rabbitMqConfig.createBinding(queue, routingKey); 
         rabbitAdmin.declareBinding(binding); 
-        System.out.println("Queue created and bound: " + queueName + " with routing key: " + routingKey);
+
+        logger.info("Queue {} bound with routingKey: {}", queueName, routingKey);
     }
     
     public void sendCodeVerification(String email, String code){
+        logger.info("Sending verification code to email: {}", email);
         Map<String, String> message = new HashMap<>();
+
+        message.put("email", email);
+        message.put("code", code);
 
         rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message);
 
-        System.out.println("Verification code message sent to RabbitMQ.");
+        logger.info("Verification code message sent for email: {}", email);
+
     }
 
 }

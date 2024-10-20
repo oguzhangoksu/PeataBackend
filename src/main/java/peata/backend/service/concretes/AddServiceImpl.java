@@ -16,6 +16,9 @@ import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
 import peata.backend.utils.Requests.AddRequest;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +26,8 @@ import java.util.List;
 
 @Service
 public class AddServiceImpl implements AddService{
+
+    private static final Logger logger = LoggerFactory.getLogger(AddServiceImpl.class);
 
     @Autowired
     private AddRepository addRepository;
@@ -39,7 +44,7 @@ public class AddServiceImpl implements AddService{
 
 
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException{
-        
+        logger.info("Saving new ad for user with ID: {}", addRequest.getUser_id());
         Add add = new Add();
         add.setAnimal_name(addRequest.getAnimal_name());
         add.setAge(addRequest.getAge());
@@ -58,41 +63,51 @@ public class AddServiceImpl implements AddService{
         User owner=userService.findUserById(addRequest.getUser_id());
         add.setUser(owner);
         Add addDb=addRepository.save(add);
+        logger.debug("Ad saved with ID: {}", addDb.getId());
         List<String> imageUrls=s3Service.uploadFilesToFolder(Long.toString(addDb.getId()), fileDatas);
+        logger.info("Uploaded {} images for ad ID: {}", imageUrls.size(), addDb.getId());
         if(add.getStatus()==0){
             emailServiceImpl.sendToAdmins(owner.getEmail(), imageUrls, addDb.getId());
+            logger.info("Notification email sent to admins for ad ID: {}", addDb.getId());
         }
         addDb.setImages(imageUrls);
         return addRepository.save(addDb);
     }
     public Add save(Add add,User user){
+        logger.info("Updating ad with ID: {}", add.getId());
         if(add.getStatus()==2){
             notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type());
+            logger.info("Notification sent to user: {} for ad ID: {}", user.getEmail(), add.getId());
         }
         return addRepository.save(add);
     }
     
     
     public void delete(Long id){
+        logger.info("Deleting ad with ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         s3Service.deleteFolder(""+add.getId()+"/");
         addRepository.delete(add);;
+        logger.info("Ad with ID: {} has been deleted", id);
     }
     
     public AddDto findAddById(Long id){
+        logger.info("Fetching ad with ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         return convertToDto(add);
     }
 
     public Add findAddByIdWithOutDto(Long id){
+        logger.info("Fetching ad without DTO for ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         return add;
     }
 
     public List<String> findImagesByAddId(Long id){
+        logger.info("Fetching images for ad ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
 
@@ -100,16 +115,19 @@ public class AddServiceImpl implements AddService{
     }
 
     public List<Add> allAdds(){
+        logger.info("Fetching all ads from the database");
         List<Add> addDb= addRepository.findAll();
         return addDb;
     }
 
     public Page<AddDto> getPaginatedAdds(int page, int size) {
+        logger.info("Fetching paginated ads: page {}, size {}", page, size);
         Page<Add> adds = addRepository.findAll(PageRequest.of(page, size));
         return adds.map(this::convertToDto);
     }
 
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size){
+        logger.info("Fetching paginated ads with status {}: page {}, size {}", status, page, size);
         Page<Add> adds = addRepository.findByStatus(status,PageRequest.of(page, size));
 
         return adds.map(this::convertToDto);
@@ -117,7 +135,7 @@ public class AddServiceImpl implements AddService{
 
 
     public boolean existsById(Long id) {
-        // Use the repository's existsById method to check for existence
+        logger.info("Checking if ad exists with ID: {}", id);
         return addRepository.existsById(id);
     }
 

@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.UserService;
@@ -43,6 +45,8 @@ import java.util.Set;
 @RequestMapping("/user")
 public class UserController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserService userService;
 
@@ -67,28 +71,32 @@ public class UserController {
     )
     @PostMapping("/auth/register")
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
-         try {
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setName(userDto.getName());
-        user.setSurname(userDto.getSurname());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setCity(userDto.getCity());
-        user.setDistrict(userDto.getDistrict());
-        user.setRole(userDto.getRole());
-        user.setIsAllowedNotification(userDto.getIsAllowedNotification()); // map the field
+        logger.info("Creating user with username: {}", userDto.getUsername());
+        try {
+            User user = new User();
+            user.setUsername(userDto.getUsername());
+            user.setName(userDto.getName());
+            user.setSurname(userDto.getSurname());
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            user.setEmail(userDto.getEmail());
+            user.setPhone(userDto.getPhone());
+            user.setCity(userDto.getCity());
+            user.setDistrict(userDto.getDistrict());
+            user.setRole(userDto.getRole());
+            user.setIsAllowedNotification(userDto.getIsAllowedNotification()); // map the field
 
-        User userdb = userService.save(user);
-        return ResponseEntity.ok(userdb);
-    } catch (DataIntegrityViolationException e) {
-        // Custom error message for unique constraint violation
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Username, email, or phone number already exists.");
-    } catch (Exception e) {
-        // Handle other exceptions
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the user.");
-    }
+            User userdb = userService.save(user);
+            logger.info("User created successfully: {}", userdb.getUsername());
+            return ResponseEntity.ok(userdb);
+        } catch (DataIntegrityViolationException e) {
+            // Custom error message for unique constraint violation
+            logger.error("Error creating user: Username, email, or phone number already exists.", e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username, email, or phone number already exists.");
+        } catch (Exception e) {
+            // Handle other exceptions
+            logger.error("An error occurred while creating the user.", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the user.");
+        }
     }
 
 
@@ -98,18 +106,23 @@ public class UserController {
     )
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        // Perform authentication logic
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getIdentifier(), 
-                loginRequest.getPassword()
-            )
-        );
-        
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        // Generate JWT Token
-        String jwt = jwtProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        logger.info("User attempting to log in: {}", loginRequest.getIdentifier());
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getIdentifier(), 
+                    loginRequest.getPassword()
+                )
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtProvider.generateToken(authentication);
+            logger.info("User logged in successfully: {}", loginRequest.getIdentifier());
+            return ResponseEntity.ok(new JwtResponse(jwt));
+        } catch (Exception e) {
+            logger.error("Login failed for user: {}", loginRequest.getIdentifier(), e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
+        }
     }
 
     @Operation(summary = "Secured API", 
@@ -118,6 +131,7 @@ public class UserController {
                )       
     @GetMapping("/getUserInformation")
     public ResponseEntity<UserResponse> getUserInformation(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        logger.info("Fetching user information for user: {}", userPrincipal.getUsername());
         User userDb=userService.findUserByUsername(userPrincipal.getUsername()); 
         UserResponse userResponse =userResponseMapper.toResponse(userDb);
         return ResponseEntity.ok(userResponse);
@@ -132,6 +146,7 @@ public class UserController {
 
     @GetMapping("/findUsersAddsById")
     public ResponseEntity<Set<Add>> findUsersAddsById(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        logger.info("Fetching ads for user: {}", userPrincipal.getUsername());
         return ResponseEntity.ok(userService.findUsersAddsById(userPrincipal.getUsername()));
     }
 
@@ -142,11 +157,14 @@ public class UserController {
     @GetMapping("/delete")
     public ResponseEntity<String> delete(@AuthenticationPrincipal UserPrincipal userPrincipal ) {
         String username = userPrincipal.getUsername();
+        logger.info("Attempting to delete user account: {}", username);
         User userToDelete = userService.findUserByUsername(username);
         if (!userToDelete.getUsername().equals(username)) {
+            logger.warn("User {} attempted to delete another user's account.", username);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to delete this user.");
         }
         userService.delete(userToDelete.getId());
+        logger.info("User account deleted: {}", username);
         return ResponseEntity.ok("User deleted");
     }
 
@@ -157,11 +175,14 @@ public class UserController {
 
     @GetMapping("/changeNotificationStatus")
     public ResponseEntity<String> changeNotificationStatus(@RequestParam() Long id) {
+        logger.info("Changing notification status for user ID: {}", id);
         User user =userService.findUserById(id);
         if(userService.changeNotificationStatus(user)){
+            logger.info("Notification status updated for user ID: {}", id);
             return ResponseEntity.ok("Notification status updated. Will be sent via mail.");
         }
         else{
+            logger.info("Notification status disabled for user ID: {}", id);
             return ResponseEntity.ok("Notification status updated. Receiving notifications via email has been disabled.");
         }
         
@@ -174,15 +195,19 @@ public class UserController {
     )  
     @PostMapping("/update")
     public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto,@RequestParam() Long id, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
+        logger.info("Updating user information for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
         User userToDelete = userService.findUserById(id);
         if (!userToDelete.getUsername().equals(username)) {
+            logger.warn("User {} attempted to update another user's information.", username);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to delete this user.");
         }
         if( userToDelete.getUsername() != userDto.getUsername() && userService.isUsernameExist(userDto.getUsername())){
+            logger.warn("Username conflict for user: {} with new username: {}", username, userDto.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
         }
         if(userToDelete.getEmail() != userDto.getEmail() && userService.isEmailExist(userDto.getEmail())){
+            logger.warn("Email conflict for user: {} with new email: {}", username, userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists. Please choose a different email.");
         }
 
@@ -195,6 +220,7 @@ public class UserController {
         userDb.setPhone(userDto.getPhone());
         userDb.setCity(userDto.getCity());
         userService.save(userDb);
+        logger.info("User information updated for user: {}", username);
         return ResponseEntity.ok("User saved.");
     }
 
@@ -206,13 +232,15 @@ public class UserController {
 
     @GetMapping("/addFavoriteAdds")
     public ResponseEntity<String> addFavoriteAdds(@RequestParam() Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal ) {
+        logger.info("User {} is adding ad ID: {} to favorites.", userPrincipal.getUsername(), AddId);
         String username = userPrincipal.getUsername();
         boolean isAdded = userService.addFavorite(AddId, username);
         if(isAdded){
-
+            logger.info("Ad ID: {} added to favorites by user: {}", AddId, userPrincipal.getUsername());
             return ResponseEntity.ok("Added to favorites.");
         }
         else{
+            logger.warn("Ad ID: {} does not exist for user: {}", AddId, userPrincipal.getUsername());
             return ResponseEntity.badRequest().body("Ad is not exist anymore");
         }
         
@@ -226,6 +254,7 @@ public class UserController {
     )  
     @GetMapping("/getFavorites")
     public ResponseEntity<List<Long>> getFavorites(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        logger.info("Fetching favorite ads for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
         User user =userService.findUserByUsername(username);
         
@@ -239,9 +268,11 @@ public class UserController {
     @GetMapping("/getPasswordCode")
     public ResponseEntity<String> getPasswordCode(@RequestParam String identifier) {
         try{
-        return ResponseEntity.ok(userService.createPaswwordResetCode(identifier));
+            logger.info("Initiating password reset for identifier: {}", identifier);
+            return ResponseEntity.ok(userService.createPaswwordResetCode(identifier));
         }
         catch(Exception e  ){
+            logger.error("Error initiating password reset: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.toString());
         }
     }
@@ -252,11 +283,14 @@ public class UserController {
     )  
     @PostMapping("/changePassword")
     public ResponseEntity<String> getPasswordCode(@RequestBody ChangePassword changePassword){
+        logger.info("Changing password for email: {}", changePassword.getEmail());
         if(userService.validateVerificationCode(changePassword.getEmail(),changePassword.getCode())){
             userService.updatePassword(changePassword.getEmail(), changePassword.getNewPassword());
+            logger.info("Password changed successfully for email: {}", changePassword.getEmail());
             return ResponseEntity.ok("User's password changed");
         }
         else{
+            logger.warn("Invalid code or email for password change attempt: {}", changePassword.getEmail());
             return ResponseEntity.badRequest().body("code or email is not valid.");
         }
     
@@ -268,12 +302,16 @@ public class UserController {
     )   
     @GetMapping("/deleteFavoriteAdd")
     public ResponseEntity<String> deleteFavoriteAdd(@RequestParam Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        String username = userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(userPrincipal.getUsername());
+        logger.info("User {} is attempting to remove ad ID: {} from favorites.", username, AddId);
+
         if(userService.deleteFavorite(userDb, AddId)){
+            logger.info("Ad ID: {} successfully removed from favorites for user: {}", AddId, username);
             return ResponseEntity.ok("Ad removed");
         }
         else{
-            
+            logger.warn("Ad ID: {} not found in favorites for user: {}", AddId, username);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("Ad not found in user's favorites");
         }

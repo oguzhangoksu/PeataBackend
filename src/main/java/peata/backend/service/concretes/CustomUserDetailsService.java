@@ -1,6 +1,9 @@
 package peata.backend.service.concretes;
 
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,24 +21,27 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository; 
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
+
+
     @Override
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        // First, try to load by username
+        logger.info("Attempting to load user by identifier: {}", identifier);
         Optional<User> user = userRepository.findByUsername(identifier);
         if (user.isEmpty()) {
-            // If not found by username, try to load by email
+            logger.warn("User not found by username: {}", identifier);
             user = userRepository.findByEmail(identifier);
             if (user.isEmpty()) {
+                logger.error("User not found with username or email: {}", identifier);
                 throw new UsernameNotFoundException("User not found with username or email: " + identifier);
             }
+            logger.info("User found by email: {}", identifier);
+        }
+        else{
+            logger.info("User found by username: {}", identifier);
         }
         return UserPrincipal.create(user.get());
     }
 
-    /* @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
-        return new UserPrincipal(user); // Convert User to UserPrincipal
-    } */
+   
 }

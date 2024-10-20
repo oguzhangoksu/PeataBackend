@@ -5,10 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import peata.backend.service.abstracts.S3Service;
 import peata.backend.utils.FileData;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -25,6 +29,8 @@ import java.util.List;
 
 @Service
 public class S3ServiceImpl implements S3Service{
+
+    private static final Logger logger = LoggerFactory.getLogger(S3ServiceImpl.class);
     
     @Autowired
     private S3Client s3Client;
@@ -48,6 +54,9 @@ public class S3ServiceImpl implements S3Service{
             // Create the full file path in S3
             String fullFilePath = folderName + "/" + fileName;
             String contentType = determineContentType(fileName);
+
+            logger.info("Uploading file: {} to folder: {}", fileName, folderName);
+
             // Prepare the S3 PutObjectRequest
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -62,10 +71,10 @@ public class S3ServiceImpl implements S3Service{
                 // Generate the public URL for the uploaded file
                 String imageUrl = generateFileUrl(fullFilePath);
                 imageUrls.add(imageUrl);
+
+                logger.info("File uploaded successfully: {}", fileName);
             } catch (SdkException e) {
-                // Handle the SDK exception (e.g., log it)
-                e.printStackTrace();
-                // Optionally, handle error logic (e.g., return an error response)
+                logger.error("Failed to upload file: {} to folder: {}. Error: {}", fileName, folderName, e.getMessage());
             }
         }
 
@@ -76,6 +85,8 @@ public class S3ServiceImpl implements S3Service{
         // The key is the path to the file inside the S3 bucket
         String fullFilePath = folderName + fileName;  // E.g. folderName/my-image.png
 
+        logger.info("Downloading file: {} from folder: {}", fileName, folderName);
+
         // Create a GetObjectRequest
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
@@ -83,15 +94,26 @@ public class S3ServiceImpl implements S3Service{
                 .build();
 
         // Get the file as a byte array
-        ResponseBytes<?> objectBytes = s3Client.getObjectAsBytes(getObjectRequest);
-        return objectBytes.asByteArray();  
+          try {
+            ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(getObjectRequest);
+            logger.info("File downloaded successfully: {}", fileName);
+            return objectBytes.asByteArray();
+        } catch (SdkException e) {
+            logger.error("Failed to download file: {}. Error: {}", fileName, e.getMessage());
+            throw new IOException("Failed to download file from S3", e);
+        }
     }
 
     private String generateFileUrl(String filePath) {
-        return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + filePath;
+
+        String fileUrl = "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + filePath;
+        logger.debug("Generated file URL: {}", fileUrl);
+        return fileUrl;
     }
 
     public void deleteFolder(String folderName) {
+
+        logger.info("Deleting folder: {}", folderName);
 
         // Initial request to list objects with the folder prefix
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
@@ -118,13 +140,14 @@ public class S3ServiceImpl implements S3Service{
 
             } while (listObjectsResponse.isTruncated());
 
-            System.out.println("Folder deleted successfully: " + folderName);
+            logger.info("Folder deleted successfully: {}", folderName);
         } catch (SdkException e) {
-            System.err.println("Failed to delete folder: " + e.getMessage());
+            logger.error("Failed to delete folder: {}. Error: {}", folderName, e.getMessage());
         }
     }
     
     public void deleteFile(String filename) {
+        logger.info("Deleting file: {}", filename);
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(filename)
@@ -132,9 +155,9 @@ public class S3ServiceImpl implements S3Service{
 
         try {
             s3Client.deleteObject(deleteObjectRequest);
-            System.out.println("File deleted: " + filename);
+            logger.info("File deleted successfully: {}", filename);
         } catch (SdkException e) {
-            System.err.println("Failed to delete file: " + filename + " - " + e.getMessage());
+            logger.error("Failed to delete file: {}. Error: {}", filename, e.getMessage());
         }
     }
 

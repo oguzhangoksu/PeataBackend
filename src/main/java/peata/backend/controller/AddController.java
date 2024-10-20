@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,6 +44,7 @@ import java.util.Iterator;
 @RequestMapping("/add")
 public class AddController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AddController.class);
     
     @Autowired
     private AddService addService;
@@ -75,6 +78,8 @@ public class AddController {
         ObjectMapper objectMapper = new ObjectMapper();
         String username= userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(username);
+
+        logger.info("User {} is trying to save an ad.", username);
         try {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
             addRequest.setUser_id(userDb.getId());
@@ -89,24 +94,24 @@ public class AddController {
                     fileDatas.add(fileData);
         
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("File upload failed for file: {}", file.getOriginalFilename(), e);
                     return ResponseEntity.status(500).body("File upload failed."+file.getOriginalFilename()+" is not uploaded");
                 }
             }
             Add addDb =addService.save(addRequest,fileDatas);
-            
+            logger.info("Ad saved successfully with ID: {}", addDb.getId());
             return ResponseEntity.ok(new AddResponse("Add saved:",addDb.getId(),addDb.getImages()));
             
             
         } catch (JsonProcessingException e) {
+            logger.error("Invalid JSON data received: {}", jsonData, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("File upload failed.", e);
             return ResponseEntity.status(500).body("File upload failed.");
         }
         
     }
-
 
     @Operation(summary = "Secured API ", 
     description = "Retrieves an add based on its ID. This endpoint requires user authentication.",
@@ -114,20 +119,22 @@ public class AddController {
     )   
     @GetMapping("/findAddById")
     public ResponseEntity<AddDto> findAddById(@RequestParam Long id) {
+        logger.info("Fetching ad with ID: {}", id);
         AddDto addDto=addService.findAddById(id);
+        logger.info("Successfully retrieved ad: {}", addDto);
         return ResponseEntity.ok(addDto);
     }
-
     @Operation(summary = "Secured API ", 
         description = "Retrieves images associated with a specific ad using its ID. This endpoint also requires authentication.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/findImagesByAddId")
     public ResponseEntity<List<String>> findImagesByAddId(@RequestParam Long id) {
+        logger.info("Fetching images for ad with ID: {}", id);
         List<String> images=addService.findImagesByAddId(id);
+        logger.info("Successfully retrieved images for ad ID {}: {}", id, images);
         return ResponseEntity.ok(images);
     }
-
 
     @Operation(summary = "Secured API ", 
         description = "Fetches a paginated list of adds. User authentication is required to access this endpoint.",
@@ -135,9 +142,12 @@ public class AddController {
     )   
     @GetMapping("/getPaginatedAdds")
     public ResponseEntity<Page<AddDto>> getPaginatedAdds(@RequestParam int page,@RequestParam int size) {
+        logger.info("Fetching paginated adds: page={}, size={}", page, size);
         Page<AddDto> addDtos=addService.getPaginatedAdds(page,size);
+        logger.info("Successfully retrieved {} adds for page {} with size {}", addDtos.getTotalElements(), page, size);
         return ResponseEntity.ok(addDtos);
     }
+
 
     @Operation(summary = "Secured API ", 
         description = "Deletes an ad based on its ID. This endpoint requires user authentication and checks if the ad belongs to the authenticated user.",
@@ -147,15 +157,19 @@ public class AddController {
     public ResponseEntity<String> delete(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         String username = userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(username);
+        logger.info("User {} is trying to delete ad with ID: {}", username, id);
         if (userDb == null) {
+            logger.warn("User not found: {}", username);
             return ResponseEntity.badRequest().body("User not found");
         }
+
+        
         boolean addDeleted = false;
         Iterator<Add> iterator = userDb.getAds().iterator();
         while (iterator.hasNext()) {
             Add add = iterator.next();
             if (add.getId() != null && add.getId().equals(id)) {
-                System.out.println("Removing ad with id: " + id);
+                logger.info("Removing ad with ID: {}", id);
                 iterator.remove();
                 
                 boolean adExists = addService.existsById(id); 
@@ -163,14 +177,17 @@ public class AddController {
                     addService.delete(id);
                     addDeleted = true;
                 } else {
+                    logger.warn("Ad does not exist in the database with ID: {}", id);
                     return ResponseEntity.badRequest().body("Ad does not exist in the database");
                 }
                 break; 
             }
         }
         if (!addDeleted) {
+            logger.warn("Ad ID {} not found in user's ads list for user: {}", id, username);
             return ResponseEntity.badRequest().body("Ad ID not found in user's ads list");
         }
+        logger.info("Ad deleted successfully with ID: {}", id);
         return ResponseEntity.ok("Ad deleted");
     }
 
@@ -181,20 +198,22 @@ public class AddController {
     )   
     @PostMapping("/getAddsWithIds")
         public ResponseEntity<List<AddDto>> getAddsWithIds(@RequestParam List<Long> idsList) {
+        logger.info("Received request to get adds with IDs: {}", idsList);
         List<AddDto> addsList = new ArrayList<>();
         for (Long id : idsList) {
             try {
                 AddDto addDb = addService.findAddById(id);
                 addsList.add(addDb);
+                logger.info("Add found for ID: {}", id);
             } catch (EntityNotFoundException e) {
                 System.out.println("Add not found for ID: " + id);
+                logger.warn("Add not found for ID: {}", id);
                 continue; 
             } catch (Exception e) {
-                System.out.println("An error occurred while fetching add with ID: " + id + ". Error: " + e.getMessage());
+                logger.error("An error occurred while fetching add with ID: {}. Error: {}", id, e.getMessage());
             }
         }
-        
-        // Return the list of adds found
+        logger.info("Returning list of adds found: {}", addsList);
         return ResponseEntity.ok(addsList);
     }
 
@@ -205,7 +224,9 @@ public class AddController {
     )   
     @GetMapping("/status")
     public ResponseEntity<Page<AddDto>> getPaginatedAddswithStatus(@RequestParam int status,@RequestParam int page,@RequestParam int size) {
-        Page<AddDto> addDtos=addService.getPaginatedAddswithStatus(status,page,size);
+        logger.info("Received request for paginated adds with status: {}, page: {}, size: {}", status, page, size);
+        Page<AddDto> addDtos = addService.getPaginatedAddswithStatus(status, page, size);
+        logger.info("Returning paginated adds with status: {}", status);
         return ResponseEntity.ok(addDtos);
     }
 
@@ -233,6 +254,7 @@ public class AddController {
     )    
     @PostMapping("/update")
     public ResponseEntity<?> update(@RequestParam("images") List<MultipartFile> files,@RequestParam("data") String jsonData) {
+        logger.info("Received request to update add with JSON data: {}", jsonData);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
@@ -258,9 +280,10 @@ public class AddController {
                         fileData.setFileName(file.getOriginalFilename());
                         fileData.setFileData(file.getBytes());
                         fileDatas.add(fileData);
+                        logger.info("File uploaded: {}", file.getOriginalFilename());
                         
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("File upload failed: {}. Error: {}", file.getOriginalFilename(), e.getMessage());
                         return ResponseEntity.status(500).body("File upload failed."+file.getOriginalFilename()+" is not uploaded");
                     }
                 }
@@ -277,26 +300,21 @@ public class AddController {
                 addDb.setStatus(addRequest.getStatus());
                 addDb.setPhone(addRequest.getPhone());
                 addDb.setEmail(addRequest.getEmail());
+                logger.info("Updated add with ID: {} and uploaded new images.", addRequest.getId());
                 return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
             }
             
 
         } catch (JsonProcessingException e) {
+            logger.error("Invalid JSON data. Error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("File upload failed. Error: {}", e.getMessage());
             return ResponseEntity.status(500).body("File upload failed.");
         }
         
     }
     
-    
   
-    
-
-    
-
-    
-
     
 }

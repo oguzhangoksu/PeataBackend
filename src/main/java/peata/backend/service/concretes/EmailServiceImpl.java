@@ -3,7 +3,8 @@ package peata.backend.service.concretes;
 import java.util.List;
 import java.util.Arrays;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -17,6 +18,9 @@ import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailServiceImpl {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
+
     private final List<String> admins =Arrays.asList("yusufturhag@outlook.com", "oguzhang15@hotmail.com");
       @Autowired
     private JavaMailSender mailSender;
@@ -25,32 +29,44 @@ public class EmailServiceImpl {
     private TemplateEngine templateEngine;
 
     public void sendBatchEmails(List<String> recipients, String message, String publisherEmail, List<String> imageUrls) {
+        logger.info("Starting batch email sending process to {} recipients.", recipients.size());
+
         for (String recipient : recipients) {
             try {
                 sendEmail(recipient, message, publisherEmail, imageUrls);
+                logger.info("Email successfully sent to {}", recipient);
             } catch (MessagingException e) {
-                // Log the error and continue with the next recipient
-                System.err.println("Failed to send email to " + recipient + ": " + e.getMessage());
+
+                logger.error("Failed to send email to {}: {}", recipient, e.getMessage());
+
             }
         }
+        logger.info("Batch email sending process completed.");
     }
 
     
     public void sendToAdmins( String publisherEmail, List<String> imageUrls,Long addId) {
+        logger.info("Sending email to admins regarding Add ID: {}", addId);
+
         for(String image: imageUrls){
-            System.out.println("image:"+image);
+            logger.debug("Image URL: {}", image);
         }
         for (String admin : admins) {
             try {
                 sendEmailToAdmin(admin, publisherEmail, imageUrls, addId);
+                logger.info("Email successfully sent to admin: {}", admin);
             } catch (MessagingException e) {
-                // Log the error and continue with the next recipient
-                System.err.println("Failed to send email to " + admin + ": " + e.getMessage());
+                logger.error("Failed to send email to admin {}: {}", admin, e.getMessage());
             }
         }
+
+        logger.info("Admin email sending process completed.");
+
     }
 
     private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls) throws MessagingException {
+        logger.debug("Preparing email to be sent to: {}", to);
+
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -68,10 +84,12 @@ public class EmailServiceImpl {
         mimeMessage.setHeader("X-Priority", "1"); 
         mimeMessage.setHeader("Priority", "urgent");
 
+        logger.debug("Email to {} prepared successfully.", to);
         mailSender.send(mimeMessage);
     }
 
     private void sendEmailToAdmin(String to, String publisherEmail, List<String> imageUrls, Long addId) throws MessagingException {
+        logger.debug("Preparing email to admin: {}", to);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -89,10 +107,13 @@ public class EmailServiceImpl {
         mimeMessage.setHeader("X-Priority", "1");
         mimeMessage.setHeader("Priority", "urgent");
 
+        logger.debug("Email to admin {} prepared successfully.", to);
         mailSender.send(mimeMessage);
     }
 
     public void sendVerificationCode(String to, String code) throws MessagingException{
+        logger.info("Sending verification code email to {}", to);
+
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -105,6 +126,8 @@ public class EmailServiceImpl {
 
         helper.setText(htmlContent, true);
         mailSender.send(mimeMessage);
+        
+        logger.info("Verification code email successfully sent to {}", to);
         
     }
 }
