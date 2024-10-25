@@ -174,15 +174,15 @@ public class UserController {
     )  
 
     @GetMapping("/changeNotificationStatus")
-    public ResponseEntity<String> changeNotificationStatus(@RequestParam() Long id) {
-        logger.info("Changing notification status for user ID: {}", id);
-        User user =userService.findUserById(id);
-        if(userService.changeNotificationStatus(user)){
-            logger.info("Notification status updated for user ID: {}", id);
+    public ResponseEntity<String> changeNotificationStatus(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User userDb =userService.findUserByUsername(userPrincipal.getUsername());
+        logger.info("Changing notification status for user username: {}", userDb.getUsername());
+        if(userService.changeNotificationStatus(userDb)){
+            logger.info("Notification status updated for user username: {}", userDb.getUsername());
             return ResponseEntity.ok("Notification status updated. Will be sent via mail.");
         }
         else{
-            logger.info("Notification status disabled for user ID: {}", id);
+            logger.info("Notification status disabled for user username: {}", userDb.getUsername());
             return ResponseEntity.ok("Notification status updated. Receiving notifications via email has been disabled.");
         }
         
