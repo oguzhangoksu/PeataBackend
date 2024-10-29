@@ -3,7 +3,9 @@ package peata.backend.service.concretes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.persistence.EntityNotFoundException;
 import peata.backend.dtos.AddDto;
@@ -15,7 +17,7 @@ import peata.backend.service.abstracts.S3Service;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
 import peata.backend.utils.Requests.AddRequest;
-
+import peata.backend.utils.Requests.UpdateAddInfoRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +141,50 @@ public class AddServiceImpl implements AddService{
         return addRepository.existsById(id);
     }
 
+    public void deleteImage(AddDto addDto, List<String> images) {
+        logger.info("Deleting image {} for ad ID: {}", images, addDto.getId());
+        Add add = addRepository.findById(addDto.getId())
+           .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addDto.getId() + " not found"));
+        for (String image : images) { 
+            add.getImages().remove(image);
+            
+            System.out.println("Deleting image: " + image);
+            List<String> result =extractFolderAndFileName(image);
+            s3Service.deleteImageInFolder(result.get(0), result.get(1));
+        }
+        addRepository.save(add);
+    }
+
+    public List<String> addImage(AddDto addDto, List<MultipartFile> files) throws IOException {
+        Add addDb = addRepository.findById(addDto.getId())
+            .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addDto.getId() + " not found"));
+        List<FileData> fileDatas = new ArrayList<FileData>();
+        logger.info("Starting to upload images for Add ID: {}", addDto.getId());
+        for (MultipartFile file : files) {
+            try {
+                FileData fileData = new FileData();
+                fileData.setFileName(file.getOriginalFilename());
+                fileData.setFileData(file.getBytes());
+                fileDatas.add(fileData);
+                logger.info("File prepared for upload: {}", file.getOriginalFilename());
+            } catch (IOException e) {
+                logger.error("File upload failed for: {}. Error: {}", file.getOriginalFilename(), e.getMessage());
+            }
+        }
+    
+        // Log the number of files prepared for upload
+        logger.info("Total files prepared for upload: {}", fileDatas.size());
+        List<String> imageUrls = s3Service.uploadFilesToFolder(Long.toString(addDto.getId()), fileDatas);
+    
+        for (String imageUrl : imageUrls) {
+            addDb.getImages().add(imageUrl);
+            logger.info("Image URL added to Add ID {}: {}", addDto.getId(), imageUrl);
+        }
+        addRepository.save(addDb);
+        logger.info("Add ID {} updated with new images successfully.", addDto.getId());
+        return addDb.getImages();
+    }
+
 
     private AddDto convertToDto(Add add) {
         AddDto dto = new AddDto();
@@ -160,6 +206,40 @@ public class AddServiceImpl implements AddService{
         dto.setUser_id(add.getUser().getId());
         return dto;
     }
+
+    public Add updateAddDto(UpdateAddInfoRequest addInfoRequest){
+        Add addDb = addRepository.findById(addInfoRequest.getId())
+            .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addInfoRequest.getId() + " not found"));
+        addDb.setAnimal_name(addInfoRequest.getAnimal_name());
+        addDb.setAge(addInfoRequest.getAge());
+        addDb.setBreed(addInfoRequest.getBreed());
+        addDb.setGender(addInfoRequest.getGender());
+        addDb.setDescription(addInfoRequest.getDescription());
+        addDb.setCity(addInfoRequest.getCity());
+        addDb.setDistrict(addInfoRequest.getDistrict());
+        addDb.setPhone(addInfoRequest.getPhone());
+        addDb.setEmail(addInfoRequest.getEmail());
+        addRepository.save(addDb);
+        return addDb;
+
+
+    }
+
+
+    private List<String> extractFolderAndFileName(String url) {
+        String path = url.replaceFirst("https://[^/]+/", "");
+
+        String[] parts = path.split("/");
+
+        String folderName = parts[0];   
+        String fileName = parts[1];     
+        List<String> result = new ArrayList<>();
+        result.add(folderName);
+        result.add(fileName);
+
+        return result;
+    }
+
 
    
 

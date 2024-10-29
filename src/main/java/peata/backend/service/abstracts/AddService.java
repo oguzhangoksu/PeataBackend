@@ -6,11 +6,13 @@ import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.utils.FileData;
 import peata.backend.utils.Requests.AddRequest;
+import peata.backend.utils.Requests.UpdateAddInfoRequest;
 
 import java.io.IOException;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface AddService {
 
@@ -25,4 +27,8 @@ public interface AddService {
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size);
     public Add save(Add add,User user);
     public boolean existsById(Long id);
+    public void deleteImage(AddDto addDto, List<String> imageName);
+    public List<String> addImage(AddDto addDto,List<MultipartFile> files)throws IOException;
+    public Add updateAddDto(UpdateAddInfoRequest addInfoRequest);
+
 }

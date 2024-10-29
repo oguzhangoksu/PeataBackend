@@ -19,7 +19,10 @@ import peata.backend.service.abstracts.S3Service;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
 import peata.backend.utils.UserPrincipal;
+
 import peata.backend.utils.Requests.AddRequest;
+import peata.backend.utils.Requests.DeleteImageRequest;
+import peata.backend.utils.Requests.UpdateAddInfoRequest;
 import peata.backend.utils.Responses.AddResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -314,7 +318,62 @@ public class AddController {
         }
         
     }
+
     
+    @Operation(summary = "Secured API ", 
+        description = "This API endpoint deletes specified images from an advertisement if the authenticated user is the owner of the advertisement.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )   
+    @PostMapping("/update/deleteImages")
+    public ResponseEntity<String> deleteImages(@RequestBody DeleteImageRequest deleteImageRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        User user =userService.findUserByUsername(userPrincipal.getUsername());
+        AddDto addDto=addService.findAddById(deleteImageRequest.getAddId());
+        if(addDto.getUser_id() == user.getId()){
+
+            addService.deleteImage(addDto, deleteImageRequest.getImages());
+            return ResponseEntity.ok("Images deleted successfully.");
+        }
+        else{
+            return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
+        } 
+        
+    }
+
+    @Operation(summary = "Secured API ", 
+    description = "\n" + //
+                "This API endpoint allows an authenticated user to add specified images, provided as a List<MultipartFile>, to an advertisement if they are the owner of the advertisement",
+    security = @SecurityRequirement(name = "bearerAuth"))   
+    @PostMapping("/update/addImages")
+    public ResponseEntity<String> addImages(@RequestParam("images") List<MultipartFile> files,@RequestParam("addId") Long addId,@AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
+        User user =userService.findUserByUsername(userPrincipal.getUsername());
+        AddDto addDto=addService.findAddById(addId);
+        if(addDto.getUser_id() == user.getId()){
+
+            addService.addImage(addDto, files);
+            return ResponseEntity.ok("Images deleted successfully.");
+        }
+        else{
+            return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
+        }
+        
+    }
+    @Operation(summary = "Secured API ", 
+    description = "\n" + //
+                "This API endpoint allows an authenticated user to update the information of an advertisement if they are the owner of that advertisement.",
+    security = @SecurityRequirement(name = "bearerAuth"))   
+    @PostMapping("/update/Info")
+    public ResponseEntity<String> addInfo(UpdateAddInfoRequest addInfoRequest,@AuthenticationPrincipal UserPrincipal userPrincipal)  {
+        User user =userService.findUserByUsername(userPrincipal.getUsername());
+        if(addInfoRequest.getUser_id() == user.getId()){
+            addService.updateAddDto(addInfoRequest);
+            
+            return ResponseEntity.ok("Add Info updated successfully.");
+        }
+        else{
+            return ResponseEntity.badRequest().body("This add is not your own. You can't update add.");
+        }
+        
+    }
   
     
 }

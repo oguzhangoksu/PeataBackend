@@ -161,6 +161,13 @@ public class S3ServiceImpl implements S3Service{
         }
     }
 
+    public void deleteImageInFolder(String folderName, String fileName) {
+        String fileKey = folderName + "/" + fileName; // Construct the file key
+        logger.info("Attempting to delete image: {} in folder: {}", fileName, folderName);
+        deleteFile(fileKey); // Use the deleteFile method to delete the specific file
+        logger.info("Image deleted successfully: {} in folder: {}", fileName, folderName);
+    }
+
     private String determineContentType(String fileName) {
         if (fileName.endsWith(".png")) {
             return "image/png";
