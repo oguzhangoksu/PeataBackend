@@ -197,11 +197,8 @@ public class UserController {
     public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto,@RequestParam() Long id, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
-        User userToDelete = userService.findUserById(id);
-        if (!userToDelete.getUsername().equals(username)) {
-            logger.warn("User {} attempted to update another user's information.", username);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to delete this user.");
-        }
+        User userToDelete = userService.findUserByUsername(username);
+       
         if( userToDelete.getUsername() != userDto.getUsername() && userService.isUsernameExist(userDto.getUsername())){
             logger.warn("Username conflict for user: {} with new username: {}", username, userDto.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
