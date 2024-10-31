@@ -194,7 +194,7 @@ public class UserController {
     security = @SecurityRequirement(name = "bearerAuth")
     )  
     @PostMapping("/update")
-    public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto,@RequestParam() Long id, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
         User userToDelete = userService.findUserByUsername(username);
