@@ -197,18 +197,17 @@ public class UserController {
     public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
-        User userToDelete = userService.findUserByUsername(username);
+        User userDb = userService.findUserByUsername(username);
        
-        if( userToDelete.getUsername() != userDto.getUsername() && userService.isUsernameExist(userDto.getUsername())){
+        if( userDb.getUsername() != userDto.getUsername() && userService.isUsernameExist(userDto.getUsername())){
             logger.warn("Username conflict for user: {} with new username: {}", username, userDto.getUsername());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
         }
-        if(userToDelete.getEmail() != userDto.getEmail() && userService.isEmailExist(userDto.getEmail())){
+        if(userDb.getEmail() != userDto.getEmail() && userService.isEmailExist(userDto.getEmail())){
             logger.warn("Email conflict for user: {} with new email: {}", username, userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists. Please choose a different email.");
         }
 
-        User userDb=userService.findUserById(id);
         userDb.setUsername(userDto.getUsername());
         userDb.setName(userDto.getName());
         userDb.setSurname(userDto.getSurname());
