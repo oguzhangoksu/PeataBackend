@@ -22,6 +22,7 @@ import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.ChangePassword;
 import peata.backend.utils.Requests.LoginRequest;
+import peata.backend.utils.Requests.UserUpdateRequest;
 import peata.backend.utils.Responses.JwtResponse;
 import peata.backend.utils.Responses.UserResponse;
 import peata.backend.dtos.UserDto;
@@ -194,16 +195,21 @@ public class UserController {
     security = @SecurityRequirement(name = "bearerAuth")
     )  
     @PostMapping("/update")
-    public ResponseEntity<String> postMethodName(@RequestBody UserDto userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> postMethodName(@RequestBody UserUpdateRequest userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
+        //eski isim
         String username = userPrincipal.getUsername();
-        User userDb = userService.findUserByUsername(username);
-       
-        if( userDb.getUsername() != userDto.getUsername() && userService.isUsernameExist(userDto.getUsername())){
-            logger.warn("Username conflict for user: {} with new username: {}", username, userDto.getUsername());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
+        //yeni isim
+        User userDb = userService.findUserByUsername(userDto.getUsername());
+        if(userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null || userDto.getPassword() == null || userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null){
+            logger.warn("Missing fields in user update request for user: {}", username);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing fields in user update request.");
         }
-        if(userDb.getEmail() != userDto.getEmail() && userService.isEmailExist(userDto.getEmail())){
+        if( !userService.isUsernameExist(userDto.getUsername()) && !userService.isUsernameExist(userDto.getUsername())){
+            logger.info("No conflict found for user: {} with new username: {} and new email: {}", username, userDto.getUsername(), userDto.getEmail());
+            return ResponseEntity.ok("User saved.");
+        }
+        else if(userService.isUsernameExist(userDto.getUsername()) || userService.isUsernameExist(userDto.getUsername())){
             logger.warn("Email conflict for user: {} with new email: {}", username, userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists. Please choose a different email.");
         }

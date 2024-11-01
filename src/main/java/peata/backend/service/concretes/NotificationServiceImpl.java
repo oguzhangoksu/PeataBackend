@@ -33,7 +33,7 @@ public class NotificationServiceImpl {
     private static final String EXCHANGE_NAME = "email-exchange";
     private static final String ROUTING_KEY = "email-routing-key";
 
-    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType) {
+    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String addId) {
         String message = "";
         String routingKey = city + "." + district; 
     
@@ -55,6 +55,7 @@ public class NotificationServiceImpl {
             messagePostProcessor.getMessageProperties().setHeader("city", city);
             messagePostProcessor.getMessageProperties().setHeader("district", district);
             messagePostProcessor.getMessageProperties().setHeader("imageUrls", imageUrls);
+            messagePostProcessor.getMessageProperties().setHeader("addId", addId);
             return messagePostProcessor;
         });
     

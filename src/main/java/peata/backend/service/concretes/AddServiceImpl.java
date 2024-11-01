@@ -75,11 +75,12 @@ public class AddServiceImpl implements AddService{
         addDb.setImages(imageUrls);
         return addRepository.save(addDb);
     }
+    //update
     public Add save(Add add,User user){
         logger.info("Updating ad with ID: {}", add.getId());
         if(add.getStatus()==2){
-            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type());
-            logger.info("Notification sent to user: {} for ad ID: {}", user.getEmail(), add.getId());
+            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type(),""+add.getId());
+            logger.info("Notification sent to user: {} for ad ID: {}", user.getEmail());
         }
         return addRepository.save(add);
     }
