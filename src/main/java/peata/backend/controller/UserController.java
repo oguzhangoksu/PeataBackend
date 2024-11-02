@@ -29,6 +29,7 @@ import peata.backend.dtos.UserDto;
 
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -194,36 +195,42 @@ public class UserController {
     description = "This endpoint allows an authenticated user to update their information, including username, name, surname, password, email, and phone. It checks for unique constraints on username and email before updating.",
     security = @SecurityRequirement(name = "bearerAuth")
     )  
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ResponseEntity<String> postMethodName(@RequestBody UserUpdateRequest userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
-        //eski isim
-        String username = userPrincipal.getUsername();
-        //yeni isim
-        User userDb = userService.findUserByUsername(userDto.getUsername());
-        if(userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null || userDto.getPassword() == null || userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null){
-            logger.warn("Missing fields in user update request for user: {}", username);
+
+        String currentUsername = userPrincipal.getUsername();
+
+        // Check for missing fields
+        if (userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null || 
+            userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null) {
+            logger.warn("Missing fields in user update request for user: {}", currentUsername);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing fields in user update request.");
         }
-        if( !userService.isUsernameExist(userDto.getUsername()) && !userService.isUsernameExist(userDto.getUsername())){
-            logger.info("No conflict found for user: {} with new username: {} and new email: {}", username, userDto.getUsername(), userDto.getEmail());
-            return ResponseEntity.ok("User saved.");
+
+        // Check for username and email conflicts
+        if (userService.isUsernameExist(userDto.getUsername()) && !userDto.getUsername().equals(currentUsername)) {
+            logger.warn("Username conflict for user: {} with new username: {}", currentUsername, userDto.getUsername());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
         }
-        else if(userService.isUsernameExist(userDto.getUsername()) || userService.isUsernameExist(userDto.getUsername())){
-            logger.warn("Email conflict for user: {} with new email: {}", username, userDto.getEmail());
+
+        if (userService.isEmailExist(userDto.getEmail()) && !userDto.getEmail().equals(userPrincipal.getEmail())) {
+            logger.warn("Email conflict for user: {} with new email: {}", currentUsername, userDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists. Please choose a different email.");
         }
 
+        // Proceed with updating user information
+        User userDb = userService.findUserByUsername(currentUsername);
         userDb.setUsername(userDto.getUsername());
         userDb.setName(userDto.getName());
         userDb.setSurname(userDto.getSurname());
-        userDb.setPassword(userDto.getPassword());
         userDb.setEmail(userDto.getEmail());
         userDb.setPhone(userDto.getPhone());
         userDb.setCity(userDto.getCity());
         userService.save(userDb);
-        logger.info("User information updated for user: {}", username);
-        return ResponseEntity.ok("User saved.");
+
+        logger.info("User information updated for user: {}", currentUsername);
+        return ResponseEntity.ok("User information updated successfully.");
     }
 
 

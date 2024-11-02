@@ -10,12 +10,10 @@ public class UserUpdateRequest {
     private String username;
     private String name;
     private String surname;
-    private String password;
     private String email;
     private String phone;
     private String city;
     private String district;
-    private List<Long> favoriteAdds= new ArrayList<>();
     private Boolean isAllowedNotification=false;
 
 }
