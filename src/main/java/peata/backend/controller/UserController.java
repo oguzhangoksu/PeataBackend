@@ -227,7 +227,7 @@ public class UserController {
         userDb.setEmail(userDto.getEmail());
         userDb.setPhone(userDto.getPhone());
         userDb.setCity(userDto.getCity());
-        userDb.setCity(userDto.getDistrict()); 
+        userDb.setDistrict(userDto.getDistrict()); 
         userService.save(userDb);
 
         logger.info("User information updated for user: {}", currentUsername);
