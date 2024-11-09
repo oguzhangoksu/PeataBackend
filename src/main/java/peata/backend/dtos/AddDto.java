@@ -8,6 +8,7 @@ import lombok.Data;
 public class AddDto {
     private Long id;
     private String animal_name;
+    private String pCode;
     private String age;
     private String breed;
     private String type;

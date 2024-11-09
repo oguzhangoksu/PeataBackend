@@ -28,12 +28,12 @@ public class EmailServiceImpl {
     @Autowired
     private TemplateEngine templateEngine;
 
-    public void sendBatchEmails(List<String> recipients, String message, String publisherEmail, List<String> imageUrls, String addId) {
+    public void sendBatchEmails(List<String> recipients, String message, String publisherEmail, List<String> imageUrls, String pCode) {
         logger.info("Starting batch email sending process to {} recipients.", recipients.size());
 
         for (String recipient : recipients) {
             try {
-                sendEmail(recipient, message, publisherEmail, imageUrls , addId);
+                sendEmail(recipient, message, publisherEmail, imageUrls , pCode);
                 logger.info("Email successfully sent to {}", recipient);
             } catch (MessagingException e) {
 
@@ -64,7 +64,7 @@ public class EmailServiceImpl {
 
     }
 
-    private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls, String addId) throws MessagingException {
+    private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls, String pCode) throws MessagingException {
         logger.debug("Preparing email to be sent to: {}", to);
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -77,7 +77,7 @@ public class EmailServiceImpl {
         context.setVariable("message", message);
         context.setVariable("publisherEmail", publisherEmail);
         context.setVariable("imageUrls", imageUrls);
-        context.setVariable("addId", addId);
+        context.setVariable("addId", pCode);
         String htmlContent = templateEngine.process("emailTemplate", context);
         
         helper.setText(htmlContent, true);

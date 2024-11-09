@@ -50,18 +50,18 @@ public class DynamicListenerService {
         container.setMessageListener(message -> {
             String publisherEmail = message.getMessageProperties().getHeader("publisherEmail");
             List<String> imageUrls = message.getMessageProperties().getHeader("imageUrls");
-            String addId = message.getMessageProperties().getHeader("addId");
+            String pCode = message.getMessageProperties().getHeader("pCode");
             String content = new String(message.getBody(), StandardCharsets.UTF_8);
             System.out.println("Received message in " + city + "/" + district + ": " + message);
             // Call a method to handle the message
-            handleMessage(city, district, content, publisherEmail, imageUrls, addId);
+            handleMessage(city, district, content, publisherEmail, imageUrls, pCode);
         });
         
         container.start(); // Start listening on the queue
     }
 
     // Method to handle the message after receiving it
-    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String addId) {
+    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode) {
         System.out.println("Received message in " + city + "/" + district + ": " + message);
         
 
@@ -70,7 +70,7 @@ public class DynamicListenerService {
         // Send emails in batches
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
-            emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,addId);
+            emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,pCode);
         }
         
         

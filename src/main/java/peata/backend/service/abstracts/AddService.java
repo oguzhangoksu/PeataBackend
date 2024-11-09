@@ -30,5 +30,6 @@ public interface AddService {
     public void deleteImage(AddDto addDto, List<String> imageName);
     public List<String> addImage(AddDto addDto,List<MultipartFile> files)throws IOException;
     public Add updateAddDto(UpdateAddInfoRequest addInfoRequest);
+    public AddDto findAddByPcode(String pCode);
 
 }

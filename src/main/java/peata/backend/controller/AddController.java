@@ -128,6 +128,7 @@ public class AddController {
         logger.info("Successfully retrieved ad: {}", addDto);
         return ResponseEntity.ok(addDto);
     }
+    
     @Operation(summary = "Secured API ", 
         description = "Retrieves images associated with a specific ad using its ID. This endpoint also requires authentication.",
         security = @SecurityRequirement(name = "bearerAuth")
@@ -193,6 +194,25 @@ public class AddController {
         }
         logger.info("Ad deleted successfully with ID: {}", id);
         return ResponseEntity.ok("Ad deleted");
+    }
+    
+    @Operation(
+        summary = "Retrieve Ads by PCode", 
+        description = "Fetches one or more ads based on the provided PCode. The operation requires user authentication via Bearer token.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/findAddByPcode")
+    public ResponseEntity<?> findAddByPcode(@RequestParam String pCode) {
+        AddDto addDto = addService.findAddByPcode(pCode);
+    
+        if (addDto == null) {
+            logger.warn("No ad found for PCode: {}", pCode);
+            return ResponseEntity.badRequest().body("No ad found for PCode: " + pCode);
+        }
+        
+        logger.info("Successfully retrieved ad with PCode: {}", pCode);
+        
+        return ResponseEntity.ok(addDto);
     }
 
     

@@ -37,6 +37,9 @@ public class Add {
 
     @Column(name="animal_name",nullable = false)
     private String animal_name;
+
+    @Column(name="pcode",nullable = false)
+    private String pcode;
     
     @Column(name="age",nullable = false)
     private String age;

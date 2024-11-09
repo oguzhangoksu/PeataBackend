@@ -16,8 +16,10 @@ import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.S3Service;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
+import peata.backend.utils.RandomStringGenerator;
 import peata.backend.utils.Requests.AddRequest;
 import peata.backend.utils.Requests.UpdateAddInfoRequest;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +46,22 @@ public class AddServiceImpl implements AddService{
     @Autowired
     private NotificationServiceImpl notificationServiceImpl;
 
+    @Autowired
+    private RandomStringGenerator randomStringGenerator;
+
 
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException{
         logger.info("Saving new ad for user with ID: {}", addRequest.getUser_id());
+        String pCode = randomStringGenerator.generateRandomString(5);
+        List<Add> addList = addRepository.findByPcode(pCode);
+        while(addList.size()>0){
+            pCode = randomStringGenerator.generateRandomString(5);
+            addList = addRepository.findByPcode(pCode);
+        }
         Add add = new Add();
         add.setAnimal_name(addRequest.getAnimal_name());
         add.setAge(addRequest.getAge());
+        add.setPcode(pCode);
         add.setBreed(addRequest.getBreed());
         add.setType(addRequest.getType());
         add.setGender(addRequest.getGender());
@@ -100,6 +112,18 @@ public class AddServiceImpl implements AddService{
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         return convertToDto(add);
+    }
+    
+    public AddDto findAddByPcode(String pCode){
+        logger.info("Fetching ad with Pcode: {}", pCode);
+        List<Add> addList =addRepository.findByPcode(pCode);
+        if(addList.size()!=0){
+            Add add = addList.get(0);
+            return convertToDto(add);
+        }
+        else{
+            throw new EntityNotFoundException("Add with Pcode " + pCode + " not found");
+        }
     }
 
     public Add findAddByIdWithOutDto(Long id){
