@@ -229,7 +229,6 @@ public class AddServiceImpl implements AddService{
         dto.setEmail(add.getEmail());
         dto.setStatus(add.getStatus());
         dto.setUser_id(add.getUser().getId());
-        dto.setPCode(add.getPcode());
         return dto;
     }
 
