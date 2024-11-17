@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Date;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,5 +48,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             .body(ex.getMessage());
     }
 
+ 
     
 }

@@ -141,7 +141,7 @@ public class AddController {
         return ResponseEntity.ok(images);
     }
 
-    @Operation(summary = "Secured API ", 
+    @Operation(summary = "Public API ", 
         description = "Fetches a paginated list of adds. User authentication is required to access this endpoint.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   

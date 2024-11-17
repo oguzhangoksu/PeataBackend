@@ -75,27 +75,15 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
         logger.info("Creating user with username: {}", userDto.getUsername());
         try {
-            User user = new User();
-            user.setUsername(userDto.getUsername());
-            user.setName(userDto.getName());
-            user.setSurname(userDto.getSurname());
-            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            user.setEmail(userDto.getEmail());
-            user.setPhone(userDto.getPhone());
-            user.setCity(userDto.getCity());
-            user.setDistrict(userDto.getDistrict());
-            user.setRole(userDto.getRole());
-            user.setIsAllowedNotification(userDto.getIsAllowedNotification()); // map the field
-
-            User userdb = userService.save(user);
-            logger.info("User created successfully: {}", userdb.getUsername());
-            return ResponseEntity.ok(userdb);
+            User user = userService.mapUserDtoToUser(userDto); // Dto'yu User nesnesine map et
+            User savedUser = userService.save(user); // Kaydetme işlemi
+            logger.info("User created successfully: {}", savedUser.getUsername());
+            return ResponseEntity.ok(savedUser);
         } catch (DataIntegrityViolationException e) {
-            // Custom error message for unique constraint violation
-            logger.error("Error creating user: Username, email, or phone number already exists.", e);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username, email, or phone number already exists.");
+            // Özel hata mesajları
+            String message = handleDataIntegrityViolationException(e);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
         } catch (Exception e) {
-            // Handle other exceptions
             logger.error("An error occurred while creating the user.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the user.");
         }
@@ -327,6 +315,20 @@ public class UserController {
         }
        
     }
+
+    private String handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        if (e.getMessage().contains("Key (username)")) {
+            logger.error("Error creating user: Username already exists.", e);
+            return "Kullanıcı adı alınmıştır.";
+        } else if (e.getMessage().contains("Key (email)")) {
+            logger.error("Error creating user: Email address already exists.", e);
+            return "E-posta adresi alınmıştır.";
+        }
+        logger.error("Data integrity violation occurred.", e);
+        return "A data integrity error occurred.";
+    }
+
+        
         
 
 }

@@ -41,10 +41,10 @@ public class User {
     @Column(name="username",nullable = false,unique = true)
     private String username;
     
-    @Column(name="name",nullable = false)
+    @Column(name="name",nullable = true)
     private String name;
 
-    @Column(name="surname",nullable = false)
+    @Column(name="surname",nullable = true)
     private String surname;
 
     @Column(name="password",nullable = false)
@@ -55,7 +55,7 @@ public class User {
     @NotEmpty(message = "Email cannot be empty")
     private String email;
 
-    @Column(name="phone",nullable = true,unique = true)
+    @Column(name="phone",nullable = true)
     private String phone;
 
     @Column(name="city",nullable = false)

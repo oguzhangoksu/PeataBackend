@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import peata.backend.dtos.UserDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
 
@@ -26,4 +27,5 @@ public interface UserService {
     public boolean validateVerificationCode(String email, String code);
     public void updatePassword(String email, String newPassword);
     public boolean deleteFavorite(User user,Long AddId);
+    public User mapUserDtoToUser(UserDto userDto);
 } 

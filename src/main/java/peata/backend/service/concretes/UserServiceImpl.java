@@ -22,6 +22,7 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import peata.backend.dtos.AddDto;
+import peata.backend.dtos.UserDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.PasswordResetCode;
 import peata.backend.entity.User;
@@ -240,6 +241,21 @@ public class UserServiceImpl implements UserService {
         }
         logger.warn("Ad with ID {} not found in user {}'s favorites", AddId, user.getEmail());
         return false;
+    }
+
+    public User mapUserDtoToUser(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setName(userDto.getName());
+        user.setSurname(userDto.getSurname());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setEmail(userDto.getEmail());
+        user.setPhone(userDto.getPhone());
+        user.setCity(userDto.getCity());
+        user.setDistrict(userDto.getDistrict());
+        user.setRole(userDto.getRole());
+        user.setIsAllowedNotification(userDto.getIsAllowedNotification());
+        return user;
     }
 
     
