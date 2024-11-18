@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.persistence.EntityNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -125,6 +126,35 @@ public class UserController {
         User userDb=userService.findUserByUsername(userPrincipal.getUsername()); 
         UserResponse userResponse =userResponseMapper.toResponse(userDb);
         return ResponseEntity.ok(userResponse);
+    }
+
+    @Operation(
+    summary = "Retrieve User ID", 
+    description = "This secured API retrieves the user ID of the currently authenticated user based on the JWT token provided in the Authorization header.",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @GetMapping("/getUserId")
+    public ResponseEntity<?> getUserId(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            // Log for tracking the authenticated user
+            logger.info("Request received to fetch User ID for username: {}", userPrincipal.getUsername());
+
+            Long userID = userService.findUserIdByUsername(userPrincipal.getUsername());
+
+            // Log for successful retrieval of user ID
+            logger.info("User ID {} successfully retrieved for username: {}", userID, userPrincipal.getUsername());
+
+            return ResponseEntity.ok(userID);
+        } catch (EntityNotFoundException ex) {
+            // Log for user not found
+            logger.error("User with username {} not found: {}", userPrincipal.getUsername(), ex.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } catch (Exception ex) {
+            // Log for unexpected errors
+            logger.error("An unexpected error occurred while fetching User ID for username {}: {}", 
+                        userPrincipal.getUsername(), ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
     }
     
 

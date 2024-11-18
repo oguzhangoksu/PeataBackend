@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import peata.backend.entity.User;
 
@@ -15,4 +16,8 @@ public interface UserRepository extends JpaRepository<User,Long> {
     
     @Query("SELECT u.email FROM User u WHERE u.city = :city AND u.district = :district AND u.isAllowedNotification= true AND u.email <> :publisherEmail AND u.role='ROLE_USER' ")
     List<String> findEmailsByCityAndDistrict(String city, String district,String publisherEmail);
+
+    @Query("SELECT u.id FROM User u WHERE u.username = :username")
+    Optional<Long> findUserIdByUsername(@Param("username") String username);
+
 } 

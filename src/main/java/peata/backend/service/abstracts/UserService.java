@@ -28,4 +28,5 @@ public interface UserService {
     public void updatePassword(String email, String newPassword);
     public boolean deleteFavorite(User user,Long AddId);
     public User mapUserDtoToUser(UserDto userDto);
+    public Long findUserIdByUsername(String username);
 } 

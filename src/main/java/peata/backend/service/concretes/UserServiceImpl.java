@@ -125,6 +125,11 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(()-> new EntityNotFoundException("User with Username " + username + " not found"));
         return user.getAds();
     }
+    public Long findUserIdByUsername(String username) {
+        logger.info("Finding user ID for username {}", username);
+        return userRepository.findUserIdByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User with Username " + username + " not found"));
+    }
     
     public Page<User> getPaginatedUsers(int page, int size) {
         logger.info("Fetching paginated users: page {}, size {}", page, size);
@@ -228,7 +233,7 @@ public class UserServiceImpl implements UserService {
         
        
     }
-
+    
     public boolean deleteFavorite(User user,Long AddId){
         logger.info("Deleting favorite ad with ID {} for user {}", AddId, user.getEmail());
         boolean adExists = user.getFavoriteAdds().stream()
