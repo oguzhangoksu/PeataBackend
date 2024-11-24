@@ -71,6 +71,9 @@ public class User {
     @Column(name="isAllowedNotification",nullable = false )
     private Boolean isAllowedNotification=false;
 
+    @Column(name="emailValidation",nullable = true  )
+    private Boolean emailValidation=false;
+
     @Column(name="favoriteAdds")
     private List<Long> favoriteAdds= new ArrayList<>();
 

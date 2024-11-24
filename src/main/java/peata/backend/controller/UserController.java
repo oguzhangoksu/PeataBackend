@@ -21,12 +21,12 @@ import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.ChangePassword;
+import peata.backend.utils.Requests.EmailValidationRequest;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Requests.UserUpdateRequest;
 import peata.backend.utils.Responses.JwtResponse;
 import peata.backend.utils.Responses.UserResponse;
 import peata.backend.dtos.UserDto;
-
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -42,8 +42,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Set;
 
-
-
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -58,20 +56,14 @@ public class UserController {
 
     @Autowired
     private JwtProvider jwtProvider;
-    
+
     @Autowired
     private AuthenticationManager authenticationManager;
-    
+
     @Autowired
     private UserResponseMapper userResponseMapper;
 
-
-
-    
-    @Operation(
-        summary = "Public API",
-        description = "Description: This endpoint allows new users to register by providing their details. It encrypts the password and saves the user in the database."
-    )
+    @Operation(summary = "Public API", description = "Description: This endpoint allows new users to register by providing their details. It encrypts the password and saves the user in the database.")
     @PostMapping("/auth/register")
     public ResponseEntity<?> createUser(@RequestBody UserDto userDto) {
         logger.info("Creating user with username: {}", userDto.getUsername());
@@ -86,26 +78,21 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
         } catch (Exception e) {
             logger.error("An error occurred while creating the user.", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the user.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred while creating the user.");
         }
     }
 
-
-    @Operation(
-        summary = "Public API",
-        description = "This endpoint allows users to log in by providing their identifier (username or email) and password. It authenticates the user and generates a JWT token"
-    )
+    @Operation(summary = "Public API", description = "This endpoint allows users to log in by providing their identifier (username or email) and password. It authenticates the user and generates a JWT token")
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         logger.info("User attempting to log in: {}", loginRequest.getIdentifier());
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getIdentifier(), 
-                    loginRequest.getPassword()
-                )
-            );
-            
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getIdentifier(),
+                            loginRequest.getPassword()));
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtProvider.generateToken(authentication);
             logger.info("User logged in successfully: {}", loginRequest.getIdentifier());
@@ -116,23 +103,16 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Secured API", 
-               description = "This endpoint returns the authenticated user's information based on the JWT token provided in the request.",
-               security = @SecurityRequirement(name = "bearerAuth")
-               )       
+    @Operation(summary = "Secured API", description = "This endpoint returns the authenticated user's information based on the JWT token provided in the request.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/getUserInformation")
     public ResponseEntity<UserResponse> getUserInformation(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         logger.info("Fetching user information for user: {}", userPrincipal.getUsername());
-        User userDb=userService.findUserByUsername(userPrincipal.getUsername()); 
-        UserResponse userResponse =userResponseMapper.toResponse(userDb);
+        User userDb = userService.findUserByUsername(userPrincipal.getUsername());
+        UserResponse userResponse = userResponseMapper.toResponse(userDb);
         return ResponseEntity.ok(userResponse);
     }
 
-    @Operation(
-    summary = "Retrieve User ID", 
-    description = "This secured API retrieves the user ID of the currently authenticated user based on the JWT token provided in the Authorization header.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )
+    @Operation(summary = "Retrieve User ID", description = "This secured API retrieves the user ID of the currently authenticated user based on the JWT token provided in the Authorization header.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/getUserId")
     public ResponseEntity<?> getUserId(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         try {
@@ -151,18 +131,13 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         } catch (Exception ex) {
             // Log for unexpected errors
-            logger.error("An unexpected error occurred while fetching User ID for username {}: {}", 
-                        userPrincipal.getUsername(), ex.getMessage());
+            logger.error("An unexpected error occurred while fetching User ID for username {}: {}",
+                    userPrincipal.getUsername(), ex.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
-    
 
-
-    @Operation(summary = "Secured API", 
-    description = "This endpoint returns a set of ads associated with the currently authenticated user.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "This endpoint returns a set of ads associated with the currently authenticated user.", security = @SecurityRequirement(name = "bearerAuth"))
 
     @GetMapping("/findUsersAddsById")
     public ResponseEntity<Set<Add>> findUsersAddsById(@AuthenticationPrincipal UserPrincipal userPrincipal) {
@@ -170,12 +145,9 @@ public class UserController {
         return ResponseEntity.ok(userService.findUsersAddsById(userPrincipal.getUsername()));
     }
 
-    @Operation(summary = "Secured API", 
-        description = "This endpoint allows authenticated users to delete their own account.",
-        security = @SecurityRequirement(name = "bearerAuth")
-    )     
+    @Operation(summary = "Secured API", description = "This endpoint allows authenticated users to delete their own account.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/delete")
-    public ResponseEntity<String> delete(@AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> delete(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         String username = userPrincipal.getUsername();
         logger.info("Attempting to delete user account: {}", username);
         User userToDelete = userService.findUserByUsername(username);
@@ -188,40 +160,34 @@ public class UserController {
         return ResponseEntity.ok("User deleted");
     }
 
-    @Operation(summary = "Secured API", 
-    description = "This endpoint updates the notification preference for the user. It sends a notification email based on the updated status.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "This endpoint updates the notification preference for the user. It sends a notification email based on the updated status.", security = @SecurityRequirement(name = "bearerAuth"))
 
     @GetMapping("/changeNotificationStatus")
     public ResponseEntity<String> changeNotificationStatus(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        User userDb =userService.findUserByUsername(userPrincipal.getUsername());
+        User userDb = userService.findUserByUsername(userPrincipal.getUsername());
         logger.info("Changing notification status for user username: {}", userDb.getUsername());
-        if(userService.changeNotificationStatus(userDb)){
+        if (userService.changeNotificationStatus(userDb)) {
             logger.info("Notification status updated for user username: {}", userDb.getUsername());
             return ResponseEntity.ok("Notification status updated. Will be sent via mail.");
-        }
-        else{
+        } else {
             logger.info("Notification status disabled for user username: {}", userDb.getUsername());
-            return ResponseEntity.ok("Notification status updated. Receiving notifications via email has been disabled.");
+            return ResponseEntity
+                    .ok("Notification status updated. Receiving notifications via email has been disabled.");
         }
-        
+
     }
 
-
-    @Operation(summary = "Secured API", 
-    description = "This endpoint allows an authenticated user to update their information, including username, name, surname, password, email, and phone. It checks for unique constraints on username and email before updating.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "This endpoint allows an authenticated user to update their information, including username, name, surname, password, email, and phone. It checks for unique constraints on username and email before updating.", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/update")
-    public ResponseEntity<String> postMethodName(@RequestBody UserUpdateRequest userDto, @AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> postMethodName(@RequestBody UserUpdateRequest userDto,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
 
         String currentUsername = userPrincipal.getUsername();
 
         // Check for missing fields
-        if (userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null || 
-            userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null) {
+        if (userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null ||
+                userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null) {
             logger.warn("Missing fields in user update request for user: {}", currentUsername);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing fields in user update request.");
         }
@@ -229,12 +195,14 @@ public class UserController {
         // Check for username and email conflicts
         if (userService.isUsernameExist(userDto.getUsername()) && !userDto.getUsername().equals(currentUsername)) {
             logger.warn("Username conflict for user: {} with new username: {}", currentUsername, userDto.getUsername());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists. Please choose a different username.");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Username already exists. Please choose a different username.");
         }
 
         if (userService.isEmailExist(userDto.getEmail()) && !userDto.getEmail().equals(userPrincipal.getEmail())) {
             logger.warn("Email conflict for user: {} with new email: {}", currentUsername, userDto.getEmail());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists. Please choose a different email.");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Email already exists. Please choose a different email.");
         }
 
         // Proceed with updating user information
@@ -245,105 +213,105 @@ public class UserController {
         userDb.setEmail(userDto.getEmail());
         userDb.setPhone(userDto.getPhone());
         userDb.setCity(userDto.getCity());
-        userDb.setDistrict(userDto.getDistrict()); 
+        userDb.setDistrict(userDto.getDistrict());
         userService.save(userDb);
 
         logger.info("User information updated for user: {}", currentUsername);
         return ResponseEntity.ok("User information updated successfully.");
     }
 
-
-    @Operation(summary = "Secured API", 
-    description = "This endpoint allows users to add an ad to their favorites list.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "This endpoint allows users to add an ad to their favorites list.", security = @SecurityRequirement(name = "bearerAuth"))
 
     @GetMapping("/addFavoriteAdds")
-    public ResponseEntity<String> addFavoriteAdds(@RequestParam() Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal ) {
+    public ResponseEntity<String> addFavoriteAdds(@RequestParam() Long AddId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         logger.info("User {} is adding ad ID: {} to favorites.", userPrincipal.getUsername(), AddId);
         String username = userPrincipal.getUsername();
         boolean isAdded = userService.addFavorite(AddId, username);
-        if(isAdded){
+        if (isAdded) {
             logger.info("Ad ID: {} added to favorites by user: {}", AddId, userPrincipal.getUsername());
             return ResponseEntity.ok("Added to favorites.");
-        }
-        else{
+        } else {
             logger.warn("Ad ID: {} does not exist for user: {}", AddId, userPrincipal.getUsername());
             return ResponseEntity.badRequest().body("Ad is not exist anymore");
         }
-        
-        
-        
+
     }
 
-    @Operation(summary = "Secured API", 
-    description = "This endpoint retrieves a list of IDs for the ads that the user has marked as favorites.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "This endpoint retrieves a list of IDs for the ads that the user has marked as favorites.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/getFavorites")
     public ResponseEntity<List<Long>> getFavorites(@AuthenticationPrincipal UserPrincipal userPrincipal) {
         logger.info("Fetching favorite ads for user: {}", userPrincipal.getUsername());
         String username = userPrincipal.getUsername();
-        User user =userService.findUserByUsername(username);
-        
+        User user = userService.findUserByUsername(username);
+
         return ResponseEntity.ok(user.getFavoriteAdds());
     }
 
-    @Operation(summary = "Secured API", 
-    description = "Initiates the password reset process by sending a verification code to the user's registered email or username based on the provided identifier.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "Initiates the password reset process by sending a verification code to the user's registered email or username based on the provided identifier.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/getPasswordCode")
     public ResponseEntity<String> getPasswordCode(@RequestParam String identifier) {
-        try{
+        try {
             logger.info("Initiating password reset for identifier: {}", identifier);
             return ResponseEntity.ok(userService.createPaswwordResetCode(identifier));
-        }
-        catch(Exception e  ){
+        } catch (Exception e) {
             logger.error("Error initiating password reset: {}", e.getMessage());
             return ResponseEntity.badRequest().body(e.toString());
         }
     }
 
-    @Operation(summary = "Secured API", 
-    description = "Validates the provided verification code and email, and updates the user's password if the verification is successful.",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )  
+    @Operation(summary = "Secured API", description = "Validates the provided verification code and email, and updates the user's password if the verification is successful.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/changePassword")
-    public ResponseEntity<String> getPasswordCode(@RequestBody ChangePassword changePassword){
+    public ResponseEntity<String> changePassword(@RequestBody ChangePassword changePassword) {
         logger.info("Changing password for email: {}", changePassword.getEmail());
-        if(userService.validateVerificationCode(changePassword.getEmail(),changePassword.getCode())){
+        if (userService.validateVerificationCode(changePassword.getEmail(), changePassword.getCode())) {
             userService.updatePassword(changePassword.getEmail(), changePassword.getNewPassword());
             logger.info("Password changed successfully for email: {}", changePassword.getEmail());
             return ResponseEntity.ok("User's password changed");
-        }
-        else{
+        } else {
             logger.warn("Invalid code or email for password change attempt: {}", changePassword.getEmail());
             return ResponseEntity.badRequest().body("code or email is not valid.");
         }
-    
+
     }
 
-    @Operation(summary = "Secured API ", 
-    description = "This API endpoint allows authenticated users to remove a specified ad from their favorites by providing its ID, with user authentication required for access. ",
-    security = @SecurityRequirement(name = "bearerAuth")
-    )   
+    @Operation(summary = "Public API", 
+    description = "This endpoint verifies the user's email by validating the provided code. "
+            +
+            "If the validation succeeds, the user's email status will be updated in the system.", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/emailVerification")
+    public ResponseEntity<String> emailVerification(@RequestBody EmailValidationRequest emailValidationRequest) {
+        logger.info("Received email verification request for email: {}", emailValidationRequest.getEmail());
+
+        boolean isValid = userService.emailValidation(emailValidationRequest.getEmail(),
+                emailValidationRequest.getCode());
+
+        if (isValid) {
+            logger.info("Email verification successful for email: {}", emailValidationRequest.getEmail());
+            return ResponseEntity.ok("User's email validated.");
+        } else {
+            logger.warn("Email verification failed for email: {}", emailValidationRequest.getEmail());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email or code.");
+        }
+    }
+
+    @Operation(summary = "Secured API ", description = "This API endpoint allows authenticated users to remove a specified ad from their favorites by providing its ID, with user authentication required for access. ", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/deleteFavoriteAdd")
-    public ResponseEntity<String> deleteFavoriteAdd(@RequestParam Long AddId,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<String> deleteFavoriteAdd(@RequestParam Long AddId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
         String username = userPrincipal.getUsername();
-        User userDb=userService.findUserByUsername(userPrincipal.getUsername());
+        User userDb = userService.findUserByUsername(userPrincipal.getUsername());
         logger.info("User {} is attempting to remove ad ID: {} from favorites.", username, AddId);
 
-        if(userService.deleteFavorite(userDb, AddId)){
+        if (userService.deleteFavorite(userDb, AddId)) {
             logger.info("Ad ID: {} successfully removed from favorites for user: {}", AddId, username);
             return ResponseEntity.ok("Ad removed");
-        }
-        else{
+        } else {
             logger.warn("Ad ID: {} not found in favorites for user: {}", AddId, username);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Ad not found in user's favorites");
+                    .body("Ad not found in user's favorites");
         }
-       
+
     }
 
     private String handleDataIntegrityViolationException(DataIntegrityViolationException e) {
@@ -358,11 +326,4 @@ public class UserController {
         return "A data integrity error occurred.";
     }
 
-        
-        
-
 }
-
-    
-    
-

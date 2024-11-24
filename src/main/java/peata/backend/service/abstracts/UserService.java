@@ -29,4 +29,6 @@ public interface UserService {
     public boolean deleteFavorite(User user,Long AddId);
     public User mapUserDtoToUser(UserDto userDto);
     public Long findUserIdByUsername(String username);
+    public boolean validateRegisterCode(String email, String code);
+    public boolean emailValidation(String email, String code);
 } 

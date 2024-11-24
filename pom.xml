@@ -161,6 +161,12 @@
 			<version>8.0.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20240303</version> <!-- Bu sürüm tarihli bir sürümdür, güncel sürümü kontrol edebilirsiniz -->
+		</dependency>
+
 			
 	
 

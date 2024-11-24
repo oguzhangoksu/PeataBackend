@@ -131,4 +131,24 @@ public class EmailServiceImpl {
         logger.info("Verification code email successfully sent to {}", to);
         
     }
+    //HTML Halledilecek
+    
+    public void sendRegisterCode(String to , String code) throws MessagingException{
+        logger.info("Sending register code email to {}", to);
+
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        helper.setTo(to);
+        helper.setSubject("Kayıt Onaylama Kodu");
+        Context context = new Context();
+        context.setVariable("message", "Kayıt Onaylama Kodunuz:");
+        context.setVariable("code",code);
+        String htmlContent = templateEngine.process("registerVerificationTemplate", context);
+
+        helper.setText(htmlContent, true);
+        mailSender.send(mimeMessage);
+        
+        logger.info("Register code email successfully sent to {}", to);
+    }
 }

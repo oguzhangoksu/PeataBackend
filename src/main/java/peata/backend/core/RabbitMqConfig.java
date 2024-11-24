@@ -3,15 +3,25 @@ package peata.backend.core;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.MessageListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import peata.backend.utils.CustomMessageConverter;
+
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+
+
 @Configuration
 public class RabbitMqConfig {
 
     public static final String EXCHANGE = "notifications-exchange";
+    
     // Declare the topic exchange for notifications
     @Bean
     public TopicExchange topicExchange() {
@@ -40,10 +50,18 @@ public class RabbitMqConfig {
     public TopicExchange emailExchange() {
         return new TopicExchange("email-exchange");
     }
+    @Bean
+    public TopicExchange registerEmailExchange() {
+        return new TopicExchange("register-email-exchange");
+    }
 
     @Bean
     public Queue emailQueue() {
         return new Queue("email-queue");
+    }
+    @Bean
+    public Queue registerEmailQueue() {
+        return new Queue("register-email-queue");
     }
 
     @Bean
@@ -51,4 +69,12 @@ public class RabbitMqConfig {
         return BindingBuilder.bind(emailQueue).to(emailExchange).with("email-routing-key");
     }
 
+    @Bean
+    public Binding registerEmailBinding(Queue registerEmailQueue, TopicExchange registerEmailExchange) {
+        return BindingBuilder.bind(registerEmailQueue).to(registerEmailExchange).with("register-email-routing-key");
+    }
+    
+
+    
+    
 }

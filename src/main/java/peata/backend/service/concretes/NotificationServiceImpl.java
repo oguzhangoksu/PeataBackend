@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import peata.backend.core.RabbitMqConfig;
+import peata.backend.utils.RegisterMessage;
 
 @Service
 public class NotificationServiceImpl {
@@ -32,6 +33,9 @@ public class NotificationServiceImpl {
 
     private static final String EXCHANGE_NAME = "email-exchange";
     private static final String ROUTING_KEY = "email-routing-key";
+    private static final String EXCHANGE_REGISTER_NAME = "register-email-exchange";
+    private static final String ROUTING_REGISTER_KEY = "register-email-routing-key";
+
 
     public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String addId) {
         String message = "";
@@ -85,12 +89,19 @@ public class NotificationServiceImpl {
     
     public void sendCodeVerification(String email, String code){
         logger.info("Sending verification code to email: {}", email);
-        Map<String, String> message = new HashMap<>();
-
-        message.put("email", email);
-        message.put("code", code);
+        String message = "email=" + email + ", code=" + code;
 
         rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message);
+
+        logger.info("Verification code message sent for email: {}", email);
+
+    }
+
+    public void sendRegisterCode(String email, String code){
+        logger.info("Sending register code to email: {}", email);
+        String message = "email=" + email + ", code=" + code;
+        
+        rabbitTemplate.convertAndSend(EXCHANGE_REGISTER_NAME, ROUTING_REGISTER_KEY, message);
 
         logger.info("Verification code message sent for email: {}", email);
 

@@ -25,9 +25,11 @@ import peata.backend.dtos.AddDto;
 import peata.backend.dtos.UserDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.PasswordResetCode;
+import peata.backend.entity.RegisterCode;
 import peata.backend.entity.User;
 import peata.backend.listeners.DynamicListenerService;
 import peata.backend.repositories.PasswordResetCodeRepository;
+import peata.backend.repositories.RegisterCodeRepository;
 import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
@@ -59,20 +61,31 @@ public class UserServiceImpl implements UserService {
     private PasswordResetCodeRepository passwordResetCodeRepository;
 
     @Autowired
+    private RegisterCodeRepository registerCodeRepository;
+
+    @Autowired
     private GenerateCode generateCode;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User save(User user){
-        logger.info("Saving user with email: {}", user.getEmail());
-        User userDb=userRepository.save(user);
-        notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
-        dynamicListenerService.createListener( user.getCity(), user.getDistrict());
 
+    public User save(User user) {
+        logger.info("Saving user with email: {}", user.getEmail());
+        User userDb = userRepository.save(user);
+        notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
+        dynamicListenerService.createListener(user.getCity(), user.getDistrict());
+    
+        RegisterCode registerCode = new RegisterCode();
+        registerCode.setEmail(userDb.getEmail());
+        registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
+        registerCode.setCode(generateCode.generateVerificationCode());
+        registerCodeRepository.save(registerCode);
+        notificationServiceImpl.sendRegisterCode(registerCode.getEmail(),registerCode.getCode());
+
+        logger.info("Email verification message sent to RabbitMQ for email: {}", registerCode.getEmail());
         logger.info("User saved successfully with ID: {}", userDb.getId());
         return userDb;
-        
     }
 
     public boolean addFavorite(Long AddId,String username){
@@ -186,10 +199,10 @@ public class UserServiceImpl implements UserService {
         passwordResetCodeRepository.save(passwordResetCode);
 
         try{
-            emailServiceImpl.sendVerificationCode(passwordResetCode.getEmail(), passwordResetCode.getCode());
+            notificationServiceImpl.sendCodeVerification(passwordResetCode.getEmail(),passwordResetCode.getCode());
             logger.info("Password reset code sent to {}", passwordResetCode.getEmail());
         }
-        catch(MessagingException e){
+        catch(Exception e){
             logger.error("Failed to send verification email", e);
             throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
@@ -245,6 +258,46 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         logger.warn("Ad with ID {} not found in user {}'s favorites", AddId, user.getEmail());
+        return false;
+    }
+
+    public boolean emailValidation(String email, String code) {
+        logger.info("Starting email validation for email: {}", email);
+        if (!validateRegisterCode(email, code)) {
+            logger.warn("Validation failed for email: {} with code: {}", email, code);
+            return false;
+        }
+        logger.info("Register code validation succeeded for email: {}", email);
+    
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (user.isPresent()) {
+            User foundUser = user.get();
+            logger.info("User found for email: {}. Updating email validation status...", email);
+            foundUser.setEmailValidation(true);
+            userRepository.save(foundUser);
+            logger.info("Email validation status for user {} successfully updated to {}",foundUser.getEmail(), foundUser.getIsAllowedNotification());
+            return true;
+        } else {
+            logger.warn("No user found for email: {}", email);
+            return false;
+        }
+    }
+
+    public boolean validateRegisterCode(String email, String code) {
+        logger.info("Validating register code for email: {}", email);
+        List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmail(email);
+        if (listRegisterCode.isEmpty()) {
+            logger.warn("No verification codes found for email: {}", email);
+            return false; // No tokens found for the given email
+        }
+        RegisterCode lastOne=listRegisterCode.get(listRegisterCode.size()-1);
+
+        if (lastOne.getCode().equals(code) && lastOne.getEmail().equals(email)) {
+            logger.info("Verification email code validated {}", email);
+            return  lastOne.getExpirationTime().isAfter(LocalDateTime.now());
+        }
+        logger.warn("Invalid verification code for email: {}", email);
         return false;
     }
 
