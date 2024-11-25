@@ -21,6 +21,7 @@ import peata.backend.utils.JwtProvider;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Mapper.UserResponseMapper;
 import peata.backend.utils.Requests.ChangePassword;
+import peata.backend.utils.Requests.EmailRequest;
 import peata.backend.utils.Requests.EmailValidationRequest;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Requests.UserUpdateRequest;
@@ -275,8 +276,7 @@ public class UserController {
 
     }
 
-    @Operation(summary = "Public API", 
-    description = "This endpoint verifies the user's email by validating the provided code. "
+    @Operation(summary = "Public API", description = "This endpoint verifies the user's email by validating the provided code. "
             +
             "If the validation succeeds, the user's email status will be updated in the system.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/emailVerification")
@@ -292,6 +292,23 @@ public class UserController {
         } else {
             logger.warn("Email verification failed for email: {}", emailValidationRequest.getEmail());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email or code.");
+        }
+    }
+
+    @Operation(summary = "Public API", description = "This endpoint verifies the user's email by validating the provided code. "
+            +
+            "If the validation succeeds, the user's email status will be updated in the system.")
+    @PostMapping("/getEmailVerificationCode")
+    public ResponseEntity<String> getEmailVerificationCode(@RequestBody EmailRequest emailRequest) {
+        try {
+            if (userService.emailValidationCode(emailRequest.getEmail())) {
+                return ResponseEntity.ok("Verification code sent to email");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to generate verification code");
+            }
+        } catch (Exception e) {
+            logger.error("Error generating verification code: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
 

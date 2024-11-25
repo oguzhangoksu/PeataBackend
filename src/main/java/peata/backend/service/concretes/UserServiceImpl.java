@@ -283,6 +283,22 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
+    public boolean emailValidationCode(String email) {
+        try { 
+            RegisterCode registerCode = new RegisterCode();
+            registerCode.setEmail(email);
+            registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
+            registerCode.setCode(generateCode.generateVerificationCode());
+            registerCodeRepository.save(registerCode);
+            logger.info("Verification code generated and saved for email: {}", email);
+            notificationServiceImpl.sendRegisterCode(registerCode.getEmail(), registerCode.getCode());
+            logger.info("Verification code email sent to: {}", email);
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to send verification email for: {}", email, e);
+            throw new RuntimeException("Failed to send verification email. Please try again later.");
+        }
+    }
 
     public boolean validateRegisterCode(String email, String code) {
         logger.info("Validating register code for email: {}", email);

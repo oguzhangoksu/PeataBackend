@@ -31,4 +31,5 @@ public interface UserService {
     public Long findUserIdByUsername(String username);
     public boolean validateRegisterCode(String email, String code);
     public boolean emailValidation(String email, String code);
+    public boolean emailValidationCode(String email);
 } 
