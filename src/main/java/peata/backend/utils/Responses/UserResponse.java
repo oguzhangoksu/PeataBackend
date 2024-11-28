@@ -16,6 +16,7 @@ public class UserResponse {
     private String city;
     private String district;
     private Boolean isAllowedNotification;
+    private Boolean emailValidation;
     private List<Long> favoriteAdds;
     private Set<Add> ads = new HashSet<>();
 }   

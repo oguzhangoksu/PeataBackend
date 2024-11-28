@@ -19,6 +19,7 @@ public class UserResponseMapper {
         response.setIsAllowedNotification(user.getIsAllowedNotification());
         response.setFavoriteAdds(user.getFavoriteAdds());
         response.setAds(user.getAds());
+        response.setEmailValidation(user.getEmailValidation());
         return response;
     }
 }
