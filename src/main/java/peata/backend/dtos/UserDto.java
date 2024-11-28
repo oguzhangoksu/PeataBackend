@@ -19,4 +19,5 @@ public class UserDto {
     private List<Long> favoriteAdds= new ArrayList<>();
     private String role = "ROLE_USER";
     private Boolean isAllowedNotification=false;
+    private Boolean emailValidation;
 }

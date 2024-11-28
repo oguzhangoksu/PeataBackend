@@ -329,6 +329,7 @@ public class UserServiceImpl implements UserService {
         user.setDistrict(userDto.getDistrict());
         user.setRole(userDto.getRole());
         user.setIsAllowedNotification(userDto.getIsAllowedNotification());
+        user.setEmailValidation(userDto.getEmailValidation());
         return user;
     }
 
