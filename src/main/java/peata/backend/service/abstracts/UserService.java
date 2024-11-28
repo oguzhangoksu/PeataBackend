@@ -32,4 +32,5 @@ public interface UserService {
     public boolean validateRegisterCode(String email, String code);
     public boolean emailValidation(String email, String code);
     public boolean emailValidationCode(String email);
+    public Boolean updateUser(User user);
 } 

@@ -215,8 +215,7 @@ public class UserController {
         userDb.setPhone(userDto.getPhone());
         userDb.setCity(userDto.getCity());
         userDb.setDistrict(userDto.getDistrict());
-        userService.save(userDb);
-
+        userService.updateUser(userDb);
         logger.info("User information updated for user: {}", currentUsername);
         return ResponseEntity.ok("User information updated successfully.");
     }
