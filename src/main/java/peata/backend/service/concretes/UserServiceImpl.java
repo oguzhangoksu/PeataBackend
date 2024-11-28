@@ -106,23 +106,25 @@ public class UserServiceImpl implements UserService {
         userDb.setDistrict(user.getDistrict());
         User updatedUser = userRepository.save(userDb);
         logger.info("User with ID {} successfully updated in the database.", user.getId());
-        try {
-            logger.debug("Subscribing user with email {} to notifications for city: {}, district: {}", 
-                         user.getEmail(), user.getCity(), user.getDistrict());
-            notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
-            logger.info("Subscription to notifications successful for user with email: {}", user.getEmail());
-        } catch (Exception e) {
-            logger.error("Failed to subscribe user to notifications for city: {}, district: {}", 
-                         user.getCity(), user.getDistrict(), e);
-        }
-        try {
-            logger.debug("Creating dynamic listener for city: {}, district: {}", user.getCity(), user.getDistrict());
-            dynamicListenerService.createListener(user.getCity(), user.getDistrict());
-            logger.info("Dynamic listener successfully created for city: {}, district: {}", 
-                        user.getCity(), user.getDistrict());
-        } catch (Exception e) {
-            logger.error("Failed to create dynamic listener for city: {}, district: {}", 
-                         user.getCity(), user.getDistrict(), e);
+        if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
+            try {
+                logger.debug("Subscribing user with email {} to notifications for city: {}, district: {}", 
+                            user.getEmail(), user.getCity(), user.getDistrict());
+                notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
+                logger.info("Subscription to notifications successful for user with email: {}", user.getEmail());
+            } catch (Exception e) {
+                logger.error("Failed to subscribe user to notifications for city: {}, district: {}", 
+                            user.getCity(), user.getDistrict(), e);
+            }
+            try {
+                logger.debug("Creating dynamic listener for city: {}, district: {}", user.getCity(), user.getDistrict());
+                dynamicListenerService.createListener(user.getCity(), user.getDistrict());
+                logger.info("Dynamic listener successfully created for city: {}, district: {}", 
+                            user.getCity(), user.getDistrict());
+            } catch (Exception e) {
+                logger.error("Failed to create dynamic listener for city: {}, district: {}", 
+                            user.getCity(), user.getDistrict(), e);
+            }
         }
     
         logger.info("Update process for user with ID {} completed successfully.", user.getId());
