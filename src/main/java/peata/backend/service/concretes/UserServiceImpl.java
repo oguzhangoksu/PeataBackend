@@ -108,13 +108,11 @@ public class UserServiceImpl implements UserService {
         logger.info("User with ID {} successfully updated in the database.", user.getId());
         if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
             try {
-                logger.debug("Subscribing user with email {} to notifications for city: {}, district: {}", 
-                            user.getEmail(), user.getCity(), user.getDistrict());
+                logger.debug("Subscribing user with email {} to notifications for city: {}, district: {}",user.getEmail(), user.getCity(), user.getDistrict());
                 notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
                 logger.info("Subscription to notifications successful for user with email: {}", user.getEmail());
             } catch (Exception e) {
-                logger.error("Failed to subscribe user to notifications for city: {}, district: {}", 
-                            user.getCity(), user.getDistrict(), e);
+                logger.error("Failed to subscribe user to notifications for city: {}, district: {}", user.getCity(), user.getDistrict(), e);
             }
             try {
                 logger.debug("Creating dynamic listener for city: {}, district: {}", user.getCity(), user.getDistrict());
