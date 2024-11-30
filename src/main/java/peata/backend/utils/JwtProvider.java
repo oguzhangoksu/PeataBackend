@@ -1,6 +1,5 @@
 package peata.backend.utils;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.JwtException;
@@ -12,16 +11,21 @@ import java.util.logging.Logger;
 import java.util.Date;
 
 import javax.crypto.SecretKey;
-
+import org.springframework.beans.factory.annotation.Value;
+import java.util.Base64;
 @Component
 public class JwtProvider {
+
     @Value("${JWT_SECRET}")
-    private String jwtSecret; // Use a stronger key in production
+    private String jwtSecret; 
+    // private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Use a stronger key in production
     private final long jwtExpirationMs = 7776000000L; // 24 hours
     Logger logger = Logger.getLogger(this.getClass().getName());
     
 
     public String generateToken(Authentication authentication) {
+        // System.out.println("KEY:" + Base64.getEncoder().encodeToString(jwtSecret.getEncoded()));
+        System.out.println("jwtSecret:"+jwtSecret);
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         System.out.println("User Principal: " + userPrincipal.toString());
         return Jwts.builder()

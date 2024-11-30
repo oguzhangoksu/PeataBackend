@@ -93,6 +93,8 @@ public class UserController {
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getIdentifier(),
                             loginRequest.getPassword()));
+            System.out.println("authentication.getPrincipal():"+ authentication.getPrincipal());
+            System.out.println("loginRequest.getPassword:"+ loginRequest.getPassword());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtProvider.generateToken(authentication);
