@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import peata.backend.dtos.UserDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
+import peata.backend.utils.Requests.UserUpdateRequest;
 
 import java.util.Set;
 
@@ -32,5 +33,5 @@ public interface UserService {
     public boolean validateRegisterCode(String email, String code);
     public boolean emailValidation(String email, String code);
     public boolean emailValidationCode(String email);
-    public Boolean updateUser(User user);
+    public Boolean updateUser(String currentUsername,UserUpdateRequest user);
 } 

@@ -182,15 +182,14 @@ public class UserController {
 
     @Operation(summary = "Secured API", description = "This endpoint allows an authenticated user to update their information, including username, name, surname, password, email, and phone. It checks for unique constraints on username and email before updating.", security = @SecurityRequirement(name = "bearerAuth"))
     @PutMapping("/update")
-    public ResponseEntity<String> postMethodName(@RequestBody UserUpdateRequest userDto,
+    public ResponseEntity<String> updateUserInfo(@RequestBody UserUpdateRequest userDto,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         logger.info("Updating user information for user: {}", userPrincipal.getUsername());
 
         String currentUsername = userPrincipal.getUsername();
 
         // Check for missing fields
-        if (userDto.getUsername() == null || userDto.getName() == null || userDto.getSurname() == null ||
-                userDto.getEmail() == null || userDto.getPhone() == null || userDto.getCity() == null) {
+        if (userDto.getUsername() == null  ||userDto.getEmail() == null || userDto.getCity() == null || userDto.getDistrict() == null) {
             logger.warn("Missing fields in user update request for user: {}", currentUsername);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing fields in user update request.");
         }
@@ -209,17 +208,15 @@ public class UserController {
         }
 
         // Proceed with updating user information
-        User userDb = userService.findUserByUsername(currentUsername);
-        userDb.setUsername(userDto.getUsername());
-        userDb.setName(userDto.getName());
-        userDb.setSurname(userDto.getSurname());
-        userDb.setEmail(userDto.getEmail());
-        userDb.setPhone(userDto.getPhone());
-        userDb.setCity(userDto.getCity());
-        userDb.setDistrict(userDto.getDistrict());
-        userService.updateUser(userDb);
-        logger.info("User information updated for user: {}", currentUsername);
-        return ResponseEntity.ok("User information updated successfully.");
+        
+        if(userService.updateUser(currentUsername,userDto)){
+            logger.info("User information updated for user: {}", currentUsername);
+            return ResponseEntity.ok("User information updated successfully.");
+        }
+        else{
+            logger.warn("Failed to update user information for user: {}", currentUsername);
+            return ResponseEntity.badRequest().body("Failed to update user information.");
+        }
     }
 
     @Operation(summary = "Secured API", description = "This endpoint allows users to add an ad to their favorites list.", security = @SecurityRequirement(name = "bearerAuth"))

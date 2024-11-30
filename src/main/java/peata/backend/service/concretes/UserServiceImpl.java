@@ -34,6 +34,7 @@ import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.GenerateCode;
+import peata.backend.utils.Requests.UserUpdateRequest;
 
 
 @Service
@@ -87,45 +88,35 @@ public class UserServiceImpl implements UserService {
         logger.info("User saved successfully with ID: {}", userDb.getId());
         return userDb;
     }
-    public Boolean updateUser(User user) {
+    public Boolean updateUser(String currentUsername,UserUpdateRequest user) {
         logger.info("Starting update process for user with email: {}", user.getEmail());
-        Optional<User> optionalUserDb = userRepository.findById(user.getId());
+        Optional<User> optionalUserDb = userRepository.findByUsername(currentUsername);
         if (optionalUserDb.isEmpty()) {
-            logger.warn("User with ID {} not found. Update process aborted.", user.getId());
+            logger.warn("User with username {} not found. Update process aborted.", user.getUsername());
             return false;
         }
-        logger.info("User with ID {} found. Proceeding with update.", user.getId());
+        logger.info("User with username {} found. Proceeding with update.", user.getUsername());
         User userDb = optionalUserDb.get();
-        logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", user.getId());
+        System.out.println("userDb.getCity():"+ userDb.getCity());
+        System.out.println("userDb.getDistrict():"+ userDb.getDistrict());
+        System.out.println("user.getCity():"+ user.getCity());
+        System.out.println("user.getDistrict():"+ user.getDistrict());
+
+        if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
+            logger.info("City or district has changed for user ID {}. Updating subscription and listener.", userDb.getId());
+            notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
+            dynamicListenerService.createListener(user.getCity(), user.getDistrict());
+        }
+        logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
         userDb.setEmail(user.getEmail());
-        userDb.setPassword(passwordEncoder.encode(user.getPassword()));
         userDb.setName(user.getName());
         userDb.setSurname(user.getSurname());
         userDb.setPhone(user.getPhone());
         userDb.setCity(user.getCity());
         userDb.setDistrict(user.getDistrict());
-        User updatedUser = userRepository.save(userDb);
-        logger.info("User with ID {} successfully updated in the database.", user.getId());
-        if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
-            try {
-                logger.debug("Subscribing user with email {} to notifications for city: {}, district: {}",user.getEmail(), user.getCity(), user.getDistrict());
-                notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
-                logger.info("Subscription to notifications successful for user with email: {}", user.getEmail());
-            } catch (Exception e) {
-                logger.error("Failed to subscribe user to notifications for city: {}, district: {}", user.getCity(), user.getDistrict(), e);
-            }
-            try {
-                logger.debug("Creating dynamic listener for city: {}, district: {}", user.getCity(), user.getDistrict());
-                dynamicListenerService.createListener(user.getCity(), user.getDistrict());
-                logger.info("Dynamic listener successfully created for city: {}, district: {}", 
-                            user.getCity(), user.getDistrict());
-            } catch (Exception e) {
-                logger.error("Failed to create dynamic listener for city: {}, district: {}", 
-                            user.getCity(), user.getDistrict(), e);
-            }
-        }
-    
-        logger.info("Update process for user with ID {} completed successfully.", user.getId());
+        logger.info("User with ID {} successfully updated in the database.", userDb.getId());
+        userRepository.save(userDb);
+        logger.info("Update process for user with ID {} completed successfully.", userDb.getId());
         return true;
     }
 
