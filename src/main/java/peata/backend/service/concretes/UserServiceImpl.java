@@ -97,10 +97,6 @@ public class UserServiceImpl implements UserService {
         }
         logger.info("User with username {} found. Proceeding with update.", user.getUsername());
         User userDb = optionalUserDb.get();
-        System.out.println("userDb.getCity():"+ userDb.getCity());
-        System.out.println("userDb.getDistrict():"+ userDb.getDistrict());
-        System.out.println("user.getCity():"+ user.getCity());
-        System.out.println("user.getDistrict():"+ user.getDistrict());
 
         if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
             logger.info("City or district has changed for user ID {}. Updating subscription and listener.", userDb.getId());
