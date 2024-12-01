@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     @Query("SELECT u.email FROM User u WHERE u.city = :city AND u.district = :district AND u.isAllowedNotification= true AND u.email <> :publisherEmail AND u.role='ROLE_USER' ")
     List<String> findEmailsByCityAndDistrict(String city, String district,String publisherEmail);
     
-    @Query("SELECT u.email FROM User u WHERE u.city = :city AND u.district = :district AND u.isAllowedNotification = true AND u.email_validation = true AND u.email <> :publisherEmail AND u.role='ROLE_USER' ")
+    @Query("SELECT u.email FROM User u WHERE u.city = :city AND u.district = :district AND u.isAllowedNotification = true AND u.emailValidation = true AND u.email <> :publisherEmail AND u.role='ROLE_USER' ")
     List<String> findEmailsByCityAndDistrictOnValidateEmail(String city, String district,String publisherEmail);
 
     @Query("SELECT u.id FROM User u WHERE u.username = :username")
