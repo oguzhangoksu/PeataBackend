@@ -193,9 +193,15 @@ public class UserServiceImpl implements UserService {
         logger.info("Checking if email {} exists", email);
         return userRepository.findByEmail(email).isPresent();
     }
+
     public List<String> findEmailsByCityAndDistrict(String city,String email,String publisherEmail){
         logger.info("Finding emails for city: {}, district: {}, excluding publisher: {}", city, email, publisherEmail);
         return userRepository.findEmailsByCityAndDistrict(city, email,publisherEmail);
+    }
+
+    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail){
+        logger.info("Finding emails for city: {}, district: {}, excluding publisher: {}", city, email, publisherEmail);
+        return userRepository.findEmailsByCityAndDistrictOnValidateEmail(city, email,publisherEmail);
     }
     public User findUserByUsername(String username){
         logger.info("Finding user by username: {}", username);

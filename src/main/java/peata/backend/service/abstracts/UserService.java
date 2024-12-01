@@ -23,6 +23,7 @@ public interface UserService {
     public boolean isUsernameExist(String username);
     public boolean isEmailExist(String email);
     public List<String>findEmailsByCityAndDistrict(String city, String email, String publisherEmail);
+    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail);
     public User findUserByUsername(String username);
     public String createPaswwordResetCode(String identifier);
     public boolean validateVerificationCode(String email, String code);

@@ -33,3 +33,4 @@ build/
 .vscode/
 .env
 logs/
+src/main/resources/static/adminpanel/

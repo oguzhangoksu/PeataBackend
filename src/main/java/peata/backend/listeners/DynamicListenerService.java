@@ -82,7 +82,7 @@ public class DynamicListenerService {
         
 
         // Find emails of users in the same city and district
-        List<String> userEmails = userService.findEmailsByCityAndDistrict(city, district, publisherEmail);
+        List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail);
         // Send emails in batches
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));

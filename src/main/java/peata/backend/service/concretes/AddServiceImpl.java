@@ -91,7 +91,7 @@ public class AddServiceImpl implements AddService{
     public Add save(Add add,User user){
         logger.info("Updating ad with ID: {}", add.getId());
         if(add.getStatus()==2){
-            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type(),""+add.getId());
+            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type(),add.getPcode());
             logger.info("Notification sent to user: {} for ad ID: {}", user.getEmail());
         }
         return addRepository.save(add);
