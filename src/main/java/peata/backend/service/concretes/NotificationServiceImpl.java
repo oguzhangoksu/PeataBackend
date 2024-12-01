@@ -37,7 +37,7 @@ public class NotificationServiceImpl {
     private static final String ROUTING_REGISTER_KEY = "register-email-routing-key";
 
 
-    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String addId) {
+    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String pCode) {
         String message = "";
         String routingKey = city + "." + district; 
     
@@ -59,7 +59,7 @@ public class NotificationServiceImpl {
             messagePostProcessor.getMessageProperties().setHeader("city", city);
             messagePostProcessor.getMessageProperties().setHeader("district", district);
             messagePostProcessor.getMessageProperties().setHeader("imageUrls", imageUrls);
-            messagePostProcessor.getMessageProperties().setHeader("addId", addId);
+            messagePostProcessor.getMessageProperties().setHeader("pCode", pCode);
             return messagePostProcessor;
         });
     
