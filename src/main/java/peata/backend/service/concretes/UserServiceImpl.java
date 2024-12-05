@@ -104,6 +104,9 @@ public class UserServiceImpl implements UserService {
             dynamicListenerService.createListener(user.getCity(), user.getDistrict());
         }
         logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
+        if(userDb.getEmail() != user.getEmail()){
+            userDb.setEmailValidation(false);
+        }
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
         userDb.setSurname(user.getSurname());
