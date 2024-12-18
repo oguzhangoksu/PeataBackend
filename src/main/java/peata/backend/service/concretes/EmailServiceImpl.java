@@ -77,8 +77,8 @@ public class EmailServiceImpl {
         context.setVariable("message", message);
         context.setVariable("publisherEmail", publisherEmail);
         context.setVariable("imageUrls", imageUrls);
-        context.setVariable("addId", pCode);
-        String htmlContent = templateEngine.process("emailTemplate", context);
+        context.setVariable("pCode", pCode);
+        String htmlContent = templateEngine.process("emailTemplate2", context);
         
         helper.setText(htmlContent, true);
         mimeMessage.setHeader("Importance", "High");
@@ -101,7 +101,7 @@ public class EmailServiceImpl {
         context.setVariable("message", "Yeni bir ilan geldi. Ad ID'si:"+addId);
         context.setVariable("publisherEmail", publisherEmail);
         context.setVariable("imageUrls", imageUrls);
-        String htmlContent = templateEngine.process("emailTemplate", context);
+        String htmlContent = templateEngine.process("emailTemplate2", context);
 
         helper.setText(htmlContent, true);
         mimeMessage.setHeader("Importance", "High");

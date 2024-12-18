@@ -35,4 +35,6 @@ public interface UserService {
     public boolean emailValidation(String email, String code);
     public boolean emailValidationCode(String email);
     public Boolean updateUser(String currentUsername,UserUpdateRequest user);
+    public boolean addNewDevice(String username, String deviceToken);
+    public boolean deleteDevice(String username, String deviceToken);
 } 

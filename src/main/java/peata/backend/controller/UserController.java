@@ -328,6 +328,36 @@ public class UserController {
         }
 
     }
+    @Operation(summary = "Secured API ", description = "This secured API allows an authenticated user to save a new device token associated with their account. ", security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping("/userDeviceSave")
+    public ResponseEntity<String> userDeviceSave(@RequestParam String device,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        String username = userPrincipal.getUsername();
+        Boolean result = userService.addNewDevice(username,device);
+
+        if(result == false) {
+            logger.error("Error saving device for user: {}: {}", username,device );
+            return ResponseEntity.badRequest().body("Cihaz kaydedilirken hata oluştu.");
+        }
+        logger.info("User: {}'s device saved successfully.", username);
+        return ResponseEntity.ok("Cihaz kaydedildi.");        
+
+    }
+    @Operation(summary = "Secured API ", description = "This secured API allows an authenticated user to delete an existing device token associated with their account. ", security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping("/userDeviceDelete")
+    public ResponseEntity<String> userDeviceDelete(@RequestParam String device, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        String username = userPrincipal.getUsername();
+        logger.info("Attempting to delete device token for user: {}", username);
+
+        Boolean result = userService.deleteDevice(username, device);
+
+        if (!result) {
+            logger.error("Error deleting device for user: {} with token: {}", username, device);
+            return ResponseEntity.badRequest().body("Cihaz silinirken hata oluştu.");
+        }
+
+        logger.info("Device token successfully deleted for user: {}", username);
+        return ResponseEntity.ok("Cihaz başarıyla silindi.");
+    }
 
     private String handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         if (e.getMessage().contains("Key (username)")) {

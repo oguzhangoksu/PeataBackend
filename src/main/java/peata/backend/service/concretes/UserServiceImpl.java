@@ -27,9 +27,11 @@ import peata.backend.entity.Add;
 import peata.backend.entity.PasswordResetCode;
 import peata.backend.entity.RegisterCode;
 import peata.backend.entity.User;
+import peata.backend.entity.UserDevice;
 import peata.backend.listeners.DynamicListenerService;
 import peata.backend.repositories.PasswordResetCodeRepository;
 import peata.backend.repositories.RegisterCodeRepository;
+import peata.backend.repositories.UserDeviceRepository;
 import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
@@ -69,6 +71,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserDeviceRepository userDeviceRepository;
 
 
     public User save(User user) {
@@ -353,6 +358,56 @@ public class UserServiceImpl implements UserService {
         logger.warn("Invalid verification code for email: {}", email);
         return false;
     }
+
+    public boolean addNewDevice(String username, String deviceToken) {
+        logger.info("Starting to add new device for username: {}", username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    logger.error("User not found with username: {}", username);
+                    return new IllegalArgumentException("User not found with username: " + username);
+                });
+
+        logger.info("User found: {} (ID: {})", user.getUsername(), user.getId());
+
+        boolean tokenExists = userDeviceRepository.existsByUserIdAndDeviceToken(user.getId(), deviceToken);
+        if (tokenExists) {
+            logger.warn("Device token already exists for user: {} (Token: {})", username, deviceToken);
+            return false; 
+        }
+        UserDevice userDevice = new UserDevice();
+        userDevice.setUserId(user.getId());
+        userDevice.setDeviceToken(deviceToken);
+        userDevice.setUsername(username);
+        userDeviceRepository.save(userDevice);
+
+        logger.info("New device token successfully added for user: {} (Token: {})", username, deviceToken);
+        return true; 
+    }
+
+    public boolean deleteDevice(String username, String deviceToken) {
+        logger.info("Starting to delete device token for username: {}", username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    logger.error("User not found with username: {}", username);
+                    return new IllegalArgumentException("User not found with username: " + username);
+                });
+
+        logger.info("User found: {} (ID: {})", user.getUsername(), user.getId());
+
+        UserDevice userDevice = userDeviceRepository.findByUserIdAndDeviceToken(user.getId(), deviceToken)
+                .orElseThrow(() -> {
+                    logger.warn("Device token not found for user: {} (Token: {})", username, deviceToken);
+                    return new IllegalArgumentException("Device token not found for user: " + username);
+                });
+
+        userDeviceRepository.delete(userDevice);
+        logger.info("Device token successfully deleted for user: {} (Token: {})", username, deviceToken);
+
+        return true; // Cihaz token başarıyla silindi
+    }
+
 
     public User mapUserDtoToUser(UserDto userDto) {
         User user = new User();
