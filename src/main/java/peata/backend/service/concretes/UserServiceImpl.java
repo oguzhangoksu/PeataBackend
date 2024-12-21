@@ -408,6 +408,10 @@ public class UserServiceImpl implements UserService {
         return true; // Cihaz token başarıyla silindi
     }
 
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail) {
+        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail );
+    }
+
 
     public User mapUserDtoToUser(UserDto userDto) {
         User user = new User();

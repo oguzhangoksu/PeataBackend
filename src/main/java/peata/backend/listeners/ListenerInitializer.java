@@ -13,16 +13,16 @@ import java.util.List;
 public class ListenerInitializer {
 
     @Autowired
-    private UserService userService; // Service to fetch user data
+    private UserService userService; 
 
     @Autowired
-    private DynamicListenerService dynamicListenerService; // Service to create listeners
+    private DynamicListenerService dynamicListenerService; 
 
     @PostConstruct
     public void init() {
-        List<User> users = userService.allUsers(); // Fetch all users from your database
+        List<User> users = userService.allUsers(); 
         for (User user : users) {
-            dynamicListenerService.createListener(user.getCity(),user.getDistrict()); // Create the listener for the user
+            dynamicListenerService.createListener(user.getCity(),user.getDistrict()); 
         }
     }
 }

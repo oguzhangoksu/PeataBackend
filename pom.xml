@@ -166,6 +166,12 @@
 			<artifactId>json</artifactId>
 			<version>20240303</version> <!-- Bu sürüm tarihli bir sürümdür, güncel sürümü kontrol edebilirsiniz -->
 		</dependency>
+	    <!-- Firebase Notification Push-->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.1.1</version>
+		</dependency>
 
 			
 	

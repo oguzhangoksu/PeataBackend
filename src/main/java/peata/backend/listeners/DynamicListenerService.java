@@ -16,6 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import jakarta.mail.MessagingException;
 
@@ -28,10 +33,12 @@ import peata.backend.service.abstracts.UserService;
 import peata.backend.service.concretes.EmailServiceImpl;
 import peata.backend.service.concretes.NotificationServiceImpl;
 import peata.backend.utils.CustomMessageConverter;
-
-import org.springframework.amqp.core.Message;
+import com.google.firebase.messaging.Notification;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
+import com.google.firebase.messaging.Message;
+
+import org.springframework.http.*;
 
 
 @Service
@@ -41,8 +48,11 @@ public class DynamicListenerService {
     @Autowired
     private ConnectionFactory connectionFactory; // Connection to RabbitMQ
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    @Autowired
+    private GoogleCredentials googleCredentials;
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+    private static final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/paty-a11a3/messages:send";
     private final UserService userService;
 
     @Autowired
@@ -51,46 +61,96 @@ public class DynamicListenerService {
     }
 
     @Autowired
-    private EmailServiceImpl emailServiceImpl; // To send batch emails
+    private EmailServiceImpl emailServiceImpl; 
 
-    private final int BATCH_SIZE = 100; // Batch size for sending emails
+    private final int BATCH_SIZE = 100; 
 
     public void createListener(String city, String district) {
         String queueName = "queue-" + city + "-" + district;
-        // Step 2: Create a listener container for each dynamic queue
+ 
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory); // Connect to RabbitMQ
-        container.setQueueNames(queueName); // Specify the queue to listen to
+        container.setConnectionFactory(connectionFactory);
+        container.setQueueNames(queueName); 
 
-        // Define what happens when a message is received
         container.setMessageListener(message -> {
             String publisherEmail = message.getMessageProperties().getHeader("publisherEmail");
             List<String> imageUrls = message.getMessageProperties().getHeader("imageUrls");
+            String addType = message.getMessageProperties().getHeader("addType");
             String pCode = message.getMessageProperties().getHeader("pCode");
             String content = new String(message.getBody(), StandardCharsets.UTF_8);
             System.out.println("Received message in " + city + "/" + district + ": " + message);
             // Call a method to handle the message
-            handleMessage(city, district, content, publisherEmail, imageUrls, pCode);
+            handleMessage(city, district, content, publisherEmail, imageUrls, pCode,addType);
         });
         
         container.start(); // Start listening on the queue
     }
 
-    // Method to handle the message after receiving it
-    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode) {
+    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType) {
         System.out.println("Received message in " + city + "/" + district + ": " + message);
         
 
-        // Find emails of users in the same city and district
         List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail);
-        // Send emails in batches
+        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail);
+
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
             emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,pCode);
         }
         
+        sendNotificationsToDevices(userDeviceTokens, message, publisherEmail,pCode,addType);
+    }
+
+    //Firebase Notification system
+    private void sendNotificationsToDevices(List<String> deviceTokens, String messageContent, String publisherEmail, String pCode,String addType) {
+        try {
+            googleCredentials.refreshIfExpired();
+            AccessToken accessToken = googleCredentials.getAccessToken();
+            logger.info("Firebase credentials refreshed: {}", accessToken.getTokenValue());
+            
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken.getTokenValue());
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            Map<String, Object> notification = new HashMap<>();
+            if ("Kayıp".equals(addType)) {
+                notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
+                notification.put("body", "Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
+            } else {
+                notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
+                notification.put("body", "Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
+            }
+
+            Map<String, String> data = new HashMap<>();
+            data.put("pCode", pCode); 
+            
+            Map<String, Object> message = new HashMap<>();
+            logger.info("deviceTokens:{}", deviceTokens);
+            
+            for (String token : deviceTokens) {
+                try {
+                    message.put("token", token);
+                    message.put("notification", notification);
+                    message.put("data", data); 
+                    Map<String, Object> requestBody = new HashMap<>();
+                    requestBody.put("message", message);
+                    
+                    HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+                    ResponseEntity<String> response = restTemplate.postForEntity(FCM_API_URL, request, String.class);
+                    
+                    logger.info("Bildirim cihaz tokenına gönderildi: {}", response.getBody());
+                } catch (Exception e) {
+                    logger.error("Bildirim gönderirken hata oluştu: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Firebase işlemleri sırasında hata oluştu: {}", e.getMessage());
+        }
+        
         
     }
+
 
     @RabbitListener(queues = "email-queue")
     public void receiveMessage(Map<String, String> message) {

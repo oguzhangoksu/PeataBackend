@@ -58,6 +58,7 @@ public class NotificationServiceImpl {
             messagePostProcessor.getMessageProperties().setHeader("publisherEmail", publisherEmail);
             messagePostProcessor.getMessageProperties().setHeader("city", city);
             messagePostProcessor.getMessageProperties().setHeader("district", district);
+            messagePostProcessor.getMessageProperties().setHeader("addType", addType);
             messagePostProcessor.getMessageProperties().setHeader("imageUrls", imageUrls);
             messagePostProcessor.getMessageProperties().setHeader("pCode", pCode);
             return messagePostProcessor;

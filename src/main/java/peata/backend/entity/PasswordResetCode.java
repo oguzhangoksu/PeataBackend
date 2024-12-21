@@ -29,6 +29,5 @@ public class PasswordResetCode {
     private String code;
     @Column(name = "date",nullable = false)
     private LocalDateTime  expirationTime;
-    
-    // Constructors, getters, setters
+
 }

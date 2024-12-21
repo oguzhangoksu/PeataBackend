@@ -27,7 +27,7 @@ public class UserDevice {
     @Column(name="userId",nullable = false)
     private Long userId;
 
-    @Column(name="username",nullable = false,unique = true)
+    @Column(name="username",nullable = false)
     private String username;
     
     @Column(name="deviceToken",nullable = false)

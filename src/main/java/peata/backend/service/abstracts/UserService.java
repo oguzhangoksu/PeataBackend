@@ -37,4 +37,5 @@ public interface UserService {
     public Boolean updateUser(String currentUsername,UserUpdateRequest user);
     public boolean addNewDevice(String username, String deviceToken);
     public boolean deleteDevice(String username, String deviceToken);
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail);
 } 
