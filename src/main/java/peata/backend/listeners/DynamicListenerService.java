@@ -121,7 +121,12 @@ public class DynamicListenerService {
                 notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
                 notification.put("body", "Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
             }
-
+            Map<String, Object>  apns = new HashMap<>();
+            Map<String, Object>  payload = new HashMap<>();
+            Map<String, Object>  aps = new HashMap<>();
+            aps.put("sound","default");
+            payload.put("aps",aps);
+            apns.put("payload",payload);
             Map<String, String> data = new HashMap<>();
             data.put("pCode", pCode); 
             
@@ -133,6 +138,7 @@ public class DynamicListenerService {
                     message.put("token", token);
                     message.put("notification", notification);
                     message.put("data", data); 
+                    message.put("apns",apns);
                     Map<String, Object> requestBody = new HashMap<>();
                     requestBody.put("message", message);
                     
