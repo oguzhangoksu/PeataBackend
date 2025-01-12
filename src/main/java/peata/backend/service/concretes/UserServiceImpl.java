@@ -36,6 +36,7 @@ import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.GenerateCode;
+import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Requests.UserUpdateRequest;
 
 
@@ -101,6 +102,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         logger.info("User with username {} found. Proceeding with update.", user.getUsername());
+        
         User userDb = optionalUserDb.get();
         
         if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
@@ -109,12 +111,14 @@ public class UserServiceImpl implements UserService {
             dynamicListenerService.createListener(user.getCity(), user.getDistrict());
         }
         logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
+        userDb.setUsername(user.getUsername());
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
         userDb.setSurname(user.getSurname());
         userDb.setPhone(user.getPhone());
         userDb.setCity(user.getCity());
         userDb.setDistrict(user.getDistrict());
+        userDb.setIsAllowedNotification(user.getIsAllowedNotification());
         if(userDb.getEmailValidation()){
             userDb.setEmailValidation(true);
         }
