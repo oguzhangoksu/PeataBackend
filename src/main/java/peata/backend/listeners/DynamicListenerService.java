@@ -116,10 +116,10 @@ public class DynamicListenerService {
             Map<String, Object> notification = new HashMap<>();
             if ("Kayıp".equals(addType)) {
                 notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
-                notification.put("body", "Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
+                notification.put("body", "🐾 Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
             } else {
                 notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
-                notification.put("body", "Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
+                notification.put("body", "🏡 Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
             }
             Map<String, Object>  apns = new HashMap<>();
             Map<String, Object>  payload = new HashMap<>();

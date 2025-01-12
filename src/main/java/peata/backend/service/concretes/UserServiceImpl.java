@@ -102,22 +102,22 @@ public class UserServiceImpl implements UserService {
         }
         logger.info("User with username {} found. Proceeding with update.", user.getUsername());
         User userDb = optionalUserDb.get();
-
+        
         if(userDb.getCity() != user.getCity() || userDb.getDistrict() != user.getDistrict()){
             logger.info("City or district has changed for user ID {}. Updating subscription and listener.", userDb.getId());
             notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
             dynamicListenerService.createListener(user.getCity(), user.getDistrict());
         }
         logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
-        if(userDb.getEmail() != user.getEmail()){
-            userDb.setEmailValidation(false);
-        }
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
         userDb.setSurname(user.getSurname());
         userDb.setPhone(user.getPhone());
         userDb.setCity(user.getCity());
         userDb.setDistrict(user.getDistrict());
+        if(userDb.getEmailValidation()){
+            userDb.setEmailValidation(true);
+        }
         logger.info("User with ID {} successfully updated in the database.", userDb.getId());
         userRepository.save(userDb);
         logger.info("Update process for user with ID {} completed successfully.", userDb.getId());

@@ -34,3 +34,4 @@ build/
 .env
 logs/
 src/main/resources/static/adminpanel/
+src/main/resources/firebaseJson/
