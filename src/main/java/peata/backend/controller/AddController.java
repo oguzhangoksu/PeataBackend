@@ -197,8 +197,8 @@ public class AddController {
     }
     
     @Operation(
-        summary = "Retrieve Ads by PCode", 
-        description = "Fetches one or more ads based on the provided PCode. The operation requires user authentication via Bearer token.",
+        summary = "Public API", 
+        description = "Fetches one or more ads based on the provided PCode.",
         security = @SecurityRequirement(name = "bearerAuth")
     )
     @GetMapping("/findAddByPcode")
