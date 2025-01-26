@@ -1,10 +1,16 @@
 package peata.backend.utils;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
-
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
@@ -18,9 +24,11 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 
-
 @Component
 public class RateLimitFilter implements Filter {
+
+    private static final Logger logger = LoggerFactory.getLogger(RateLimitFilter.class);
+    private static final List<String> bannedIps = loadBannedIps();
 
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
 
@@ -29,6 +37,15 @@ public class RateLimitFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String ipAddress = getClientIP(httpRequest);
+        logger.info("Request IP: {}", ipAddress);
+
+        // If ipAddress is in banned list, return 403
+        if (bannedIps.contains(ipAddress)) {
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            httpResponse.getWriter().write("Your IP is banned.");
+            return;
+        }
 
         Bucket bucket = buckets.computeIfAbsent(ipAddress, k -> createNewBucket());
 
@@ -53,5 +70,21 @@ public class RateLimitFilter implements Filter {
             return request.getRemoteAddr();
         }
         return xForwardedForHeader.split(",")[0];
+    }
+
+    private static List<String> loadBannedIps() {
+        try {
+            List<String> ips = Files
+                .readAllLines(Paths.get("bannedList", "banned_ips.txt"))
+                .stream()
+                .map(String::trim)
+                .filter(ip -> !ip.isEmpty())
+                .collect(Collectors.toList());
+            logger.info("Banned IPs: {}", ips);
+            return ips;
+        } catch (IOException e) {
+            logger.error("Cannot read banned IP file.", e);
+            return Collections.emptyList();
+        }
     }
 }
