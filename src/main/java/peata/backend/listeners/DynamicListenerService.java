@@ -28,7 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
+import peata.backend.core.RabbitMqConfig;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.service.concretes.EmailServiceImpl;
 import peata.backend.service.concretes.NotificationServiceImpl;
@@ -37,6 +39,9 @@ import com.google.firebase.messaging.Notification;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
 import com.google.firebase.messaging.Message;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Queue;
 
 import org.springframework.http.*;
 
@@ -54,10 +59,14 @@ public class DynamicListenerService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
     private static final String FCM_API_URL = "https://fcm.googleapis.com/v1/projects/paty-a11a3/messages:send";
     private final UserService userService;
+    private final RabbitAdmin rabbitAdmin;
+    @Autowired
+    private RabbitMqConfig rabbitMqConfig;
 
     @Autowired
-    public DynamicListenerService(@Lazy UserService userService) {
+    public DynamicListenerService(@Lazy UserService userService,RabbitAdmin rabbitAdmin) {
         this.userService = userService;
+        this.rabbitAdmin = rabbitAdmin;
     }
 
     @Autowired
@@ -67,7 +76,8 @@ public class DynamicListenerService {
 
     public void createListener(String city, String district) {
         String queueName = "queue-" + city + "-" + district;
- 
+        declareQueueIfNotExist(queueName, city + "." + district);
+        
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(queueName); 
@@ -84,6 +94,25 @@ public class DynamicListenerService {
         });
         
         container.start(); // Start listening on the queue
+    }
+    private void declareQueueIfNotExist(String queueName, String routingKey) {
+        try {
+            logger.info("Checking if the queue {} exists.", queueName);
+    
+            if (rabbitAdmin.getQueueProperties(queueName) == null) {
+                logger.info("Queue {} does not exist. Declaring a new queue.", queueName);
+                Queue queue = rabbitMqConfig.createDurableQueue(queueName);
+                rabbitAdmin.declareQueue(queue);
+                Binding binding = rabbitMqConfig.createBinding(queue, routingKey); 
+                rabbitAdmin.declareBinding(binding);
+    
+                logger.info("Queue declared and binding created for queue: {} with routingKey: {}", queueName, routingKey);
+            } else {
+                logger.info("Queue {} already exists.", queueName);
+            }
+        } catch (Exception e) {
+            logger.error("Error while declaring queue {}: {}", queueName, e.getMessage(), e);
+        }
     }
 
     private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType) {

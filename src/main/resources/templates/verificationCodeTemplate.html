@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <title>PEATA Şifre Yenileme Kodu</title>
+    <title>PatyApp Şifre Yenileme Kodu</title>
     <style>
          body {
             font-family: Arial, sans-serif; /* Use a clean font */
@@ -39,21 +39,23 @@
         }
 
         .footer-logo {
-            max-width: 150px !important;
-            margin-bottom: 10px !important;
+            width: 10%;
+            border-radius: 50%;
+            margin: 0px !important;
             text-align: center !important;
         }
+
     </style>
 </head>
 <body>
-    <h1>PEATA Şifre Yenileme Kodu</h1>
+    <h1>PATY Şifre Yenileme Kodu</h1>
     <p th:text="${message}"></p>
     <div class="code" th:text="${code}"></div> <!-- Use a div for code styling -->
     <!-- Professional Footer -->
     <footer>
         <img th:src="@{https://peatabucket.s3.eu-north-1.amazonaws.com/Logo2.png}" alt="Company Logo" class="footer-logo"/>
         <p>Saygılarla,<br> PatyApp Geliştiricileri</p>
-        <p>İletişim: <a href="mailto:infopatyapp@gmail.com">infopatyapp@gmail.com</a></p>
+        <p>İletişim: <a href="mailto:info@patyapp.com.tr">info@patyapp.com.tr</a></p>
         <p>© 2024 PatyApp. All rights reserved.</p>
     </footer>
 </body>

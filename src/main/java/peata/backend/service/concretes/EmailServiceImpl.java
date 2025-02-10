@@ -71,7 +71,7 @@ public class EmailServiceImpl {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
         helper.setTo(to);
-        helper.setSubject("PEATA Bildirisi ");
+        helper.setSubject("PatyApp Bildirisi ");
 
         Context context = new Context();
         context.setVariable("message", message);
@@ -95,7 +95,7 @@ public class EmailServiceImpl {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
         helper.setTo(to);
-        helper.setSubject("PEATA Bildirisi ");
+        helper.setSubject("PatyApp Bildirisi ");
 
         Context context = new Context();
         context.setVariable("message", "Yeni bir ilan geldi. Ad ID'si:"+addId);
