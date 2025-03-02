@@ -188,15 +188,21 @@ public class DynamicListenerService {
 
 
     @RabbitListener(queues = "email-queue")
-    public void receiveMessage(Map<String, String> message) {
+    public void receiveMessage(String messageBody) {
+        Map<String, String> message = parseMessage(messageBody);
         String email = message.get("email");
         String code = message.get("code");
+
+        if (email == null || code == null) {
+            logger.warn("Message missing required fields: email={}, code={}", email, code);
+            return;
+        }
 
         try {
             emailServiceImpl.sendVerificationCode(email, code);
             System.out.println("Verification code sent to " + email);
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send verification email to " + email);
+            throw new RuntimeException("Failed to send verification email to " + email, e);
         }
     }
     @Bean

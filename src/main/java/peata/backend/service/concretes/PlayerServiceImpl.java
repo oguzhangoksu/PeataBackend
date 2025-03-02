@@ -56,8 +56,13 @@ public class PlayerServiceImpl implements PlayerService {
         Optional<Player> existingPlayerOpt = Optional.ofNullable(playerRepository.findByUsername(playerDto.getUsername()));
         if(existingPlayerOpt.isPresent()){
             Player existingPlayer = existingPlayerOpt.get();
-            existingPlayer.setScore(playerDto.getScore());
-            return playerRepository.save(existingPlayer);
+            if( Integer.parseInt(existingPlayer.getScore()) < Integer.parseInt(playerDto.getScore())){
+                existingPlayer.setScore(playerDto.getScore());
+                return playerRepository.save(existingPlayer);
+            }
+            else{
+                return existingPlayer;
+            }
         } else {
             Player player = new Player();
             player.setUsername(playerDto.getUsername());

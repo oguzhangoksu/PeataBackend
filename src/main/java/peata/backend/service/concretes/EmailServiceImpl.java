@@ -1,6 +1,7 @@
 package peata.backend.service.concretes;
 
 import java.util.List;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -13,6 +14,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 
 
@@ -21,7 +23,7 @@ public class EmailServiceImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
-    private final List<String> admins =Arrays.asList("yusufturhag@outlook.com", "oguzhang15@hotmail.com");
+    private final List<String> admins =Arrays.asList("yuky.yt@gmail.com", "oguzhang15@hotmail.com");
       @Autowired
     private JavaMailSender mailSender;
 
@@ -64,12 +66,16 @@ public class EmailServiceImpl {
 
     }
 
-    private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls, String pCode) throws MessagingException {
+    private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls, String pCode) throws MessagingException{
         logger.debug("Preparing email to be sent to: {}", to);
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
+        try {
+            helper.setFrom(new InternetAddress("info@patyapp.com.tr", "Paty Noreply"));
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Failed to set sender display name: {}", e.getMessage());
+        }
         helper.setTo(to);
         helper.setSubject("PatyApp Bildirisi ");
 
