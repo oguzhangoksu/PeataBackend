@@ -87,10 +87,11 @@ public class DynamicListenerService {
             List<String> imageUrls = message.getMessageProperties().getHeader("imageUrls");
             String addType = message.getMessageProperties().getHeader("addType");
             String pCode = message.getMessageProperties().getHeader("pCode");
+            String language = message.getMessageProperties().getHeader("language");
             String content = new String(message.getBody(), StandardCharsets.UTF_8);
             System.out.println("Received message in " + city + "/" + district + ": " + message);
             // Call a method to handle the message
-            handleMessage(city, district, content, publisherEmail, imageUrls, pCode,addType);
+            handleMessage(city, district, content, publisherEmail, imageUrls, pCode,addType,language);
         });
         
         container.start(); // Start listening on the queue
@@ -115,23 +116,36 @@ public class DynamicListenerService {
         }
     }
 
-    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType) {
+    private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType,String language) {
         System.out.println("Received message in " + city + "/" + district + ": " + message);
         
 
-        List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail);
-        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail);
+        List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail,language);
+        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail,language);
 
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
-            emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,pCode);
+            emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,pCode,language);
         }
         
-        sendNotificationsToDevices(userDeviceTokens, message, publisherEmail,pCode,addType);
+        sendNotificationsToDevices(userDeviceTokens, message, publisherEmail,pCode,addType,language);
     }
 
     //Firebase Notification system
-    private void sendNotificationsToDevices(List<String> deviceTokens, String messageContent, String publisherEmail, String pCode,String addType) {
+    private void sendNotificationsToDevices(List<String> deviceTokens, String messageContent, String publisherEmail, String pCode,String addType,String language) {
+        HashMap<String, String> titleByLanguage = new HashMap<>(){{
+            put("tr", "Bulunduğunuz İlçede Bir İlan Açıldı");
+            put("en", "An announcement has been opened in your district");
+        }};
+        HashMap<String, String> bodyKayipByLanguage = new HashMap<>(){{
+            put("tr", "🐾 Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
+            put("en", "🐾 Lost pet announcement found in your area. Click to see the ad.");
+        }};
+        HashMap<String, String> bodySahipByLanguage = new HashMap<>(){{
+            put("tr", "🏡 Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
+            put("en", "🏡The adoption announcement has been opened in your area. Click to see the ad.");
+        }};
+
         try {
             googleCredentials.refreshIfExpired();
             AccessToken accessToken = googleCredentials.getAccessToken();
@@ -144,11 +158,11 @@ public class DynamicListenerService {
             
             Map<String, Object> notification = new HashMap<>();
             if ("Kayıp".equals(addType)) {
-                notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
-                notification.put("body", "🐾 Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
+                notification.put("title", titleByLanguage.get(language));
+                notification.put("body", bodyKayipByLanguage.get(language));
             } else {
-                notification.put("title", "Bulunduğunuz İlçede Bir İlan Açıldı");
-                notification.put("body", "🏡 Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
+                notification.put("title", titleByLanguage.get(language));
+                notification.put("body", bodySahipByLanguage.get(language));
             }
             Map<String, Object>  apns = new HashMap<>();
             Map<String, Object>  payload = new HashMap<>();
@@ -192,6 +206,7 @@ public class DynamicListenerService {
         Map<String, String> message = parseMessage(messageBody);
         String email = message.get("email");
         String code = message.get("code");
+        String language = message.get("language");
 
         if (email == null || code == null) {
             logger.warn("Message missing required fields: email={}, code={}", email, code);
@@ -199,12 +214,13 @@ public class DynamicListenerService {
         }
 
         try {
-            emailServiceImpl.sendVerificationCode(email, code);
+            emailServiceImpl.sendVerificationCode(email, code,language);
             System.out.println("Verification code sent to " + email);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send verification email to " + email, e);
         }
     }
+    
     @Bean
     public SimpleMessageListenerContainer messageListenerContainer(ConnectionFactory connectionFactory) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
@@ -226,15 +242,16 @@ public class DynamicListenerService {
 
                     String email = messageData.get("email");
                     String code = messageData.get("code");
+                    String language = messageData.get("language");
 
                     // Eğer eksik değer varsa logla ve işlemi sonlandır
                     if (email == null || code == null) {
-                        logger.warn("Message missing required fields: email={} code={}", email, code);
+                        logger.warn("Message missing required fields: email={} code={} language={}", email, code, language);
                         return;
                     }
 
                     // Email gönder
-                    emailServiceImpl.sendRegisterCode(email, code);
+                    emailServiceImpl.sendRegisterCode(email, code, language);
                     logger.info("Sent verification email to: {}", email);
 
                 } catch (Exception e) {
@@ -248,11 +265,12 @@ public class DynamicListenerService {
                     Map<String, String> messageData = parseMessage(new String(message.getBody()));
                     String email = messageData.get("email");
                     String code = messageData.get("code");
+                    String language = messageData.get("language");
                     if (email == null || code == null) {
                         logger.warn("Message missing required fields: email={} code={}", email, code);
                         return;
                     }
-                    emailServiceImpl.sendVerificationCode(email, code);
+                    emailServiceImpl.sendVerificationCode(email, code, language);
                     System.out.println("Verification code sent to " + email);
                 }
                 catch(Exception e){

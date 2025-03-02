@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Notification</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border: 1px solid #dddddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #3cbd6d;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+
+        .content h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .content p {
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card img {
+            width: 100%;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+
+        .card-text {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #3cbd6d;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .button:hover {
+            background-color: #247043;
+        }
+
+        .footer {
+            background-color: #f4f4f4;
+            color: #666666;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+        .footer-logo {
+            width: 10%;
+            border-radius: 50%;
+            margin: 0px !important;
+            text-align: center !important;
+        }
+
+        .footer a {
+            color: #3cbd6d;
+            text-decoration: none;
+        }
+        @media (min-width: 576px) {
+            .row {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .col {
+                width: 50%;
+                padding: 10px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .col {
+                width: 33.33%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .col {
+                width: 25%;
+            }
+        }
+        .code {
+            display: inline-block; /* Make the code block inline */
+            background-color: #e0e0e0; /* Light gray background for code */
+            border-left: 4px solid #247043; /* Blue left border for emphasis */
+            padding: 10px; /* Space around the code */
+            font-family: 'Courier New', Courier, monospace; /* Monospace font for code */
+            font-size: 18px; /* Larger font size for better visibility */
+            margin: 20px 0px 0px 0px; /* Space above and below the code block */
+            border-radius: 5px; /* Rounded corners */
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>Pet Notice</h1>
+        </div>
+        <!-- Content Section -->
+        <div class="content">
+            <p th:text="${message}"></p>
+            <p>Contact: <span th:text="${publisherEmail}"></span></p>
+            <div style="text-align: center;">
+                <div th:each="imageUrl : ${imageUrls}" style="display: inline-block; vertical-align: top; margin: 10px;">
+                    <div class="card" style="width: 200px; height: 200px; overflow: hidden;">
+                        <img style="width: 100%; height: 100%; object-fit: cover;" th:src="${imageUrl}" alt="Pet Image"/>
+                    </div>
+                </div>
+            </div>
+            <p>You can access it from the application via PCode: <span class="code" th:text="${pCode}"></span></p>
+            
+        </div>
+        
+
+        <div class="footer">
+            <img id="logo" th:src="@{https://peatabucket.s3.eu-north-1.amazonaws.com/Logo2.png}" src="Logo2.png" alt="Company Logo" class="footer-logo"/>
+            <p>Regards,<br> PatyApp Developers</p>
+            <p>Contact: <a href="mailto:info@patyapp.com.tr">info@patyapp.com.tr</a></p>
+            <p>© 2024 PatyApp. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

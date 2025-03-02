@@ -1,5 +1,6 @@
 package peata.backend.service.concretes;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,9 +33,18 @@ public class NotificationServiceImpl {
     private static final String ROUTING_KEY = "email-routing-key";
     private static final String EXCHANGE_REGISTER_NAME = "register-email-exchange";
     private static final String ROUTING_REGISTER_KEY = "register-email-routing-key";
+    
+    HashMap<String, String> bodyKayipByLanguage = new HashMap<>(){{
+        put("tr","Etrafınızda kaybolan bir evcil hayvan bulunmakta. Lütfen gördüğünüz anda verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.");
+        put("en","A lost pet has been reported in your area. Kindly contact the issuer of this announcement via the provided email address immediately upon sighting the animal.");
+    }};
+    HashMap<String, String> bodySahipByLanguage = new HashMap<>(){{
+        put("tr","Etrafınızda sahiplenilmek isteyen bir yavrumuz bulunmakta. Eğer iletişime geçmek isterseniz verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.");
+        put("en","There is a little one around you looking for a home. If you would like to get in touch, please contact us via the provided email address");
+    }};
 
 
-    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String pCode) {
+    public void sendNotification(String publisherEmail, String city, String district, List<String> imageUrls, String addType,String pCode,String language) {
         String message = "";
         String routingKey = city + "." + district; 
     
@@ -43,9 +53,9 @@ public class NotificationServiceImpl {
 
         // Define the message based on addType
         if ("Kayıp".equals(addType)) {
-            message = "Etrafınızda kaybolan bir evcil hayvan bulunmakta. Lütfen gördüğünüz anda verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.";
+            message =bodyKayipByLanguage.get(language);
         } else {
-            message = "Etrafınızda sahiplenilmek isteyen bir yavrumuz bulunmakta. Eğer iletişime geçmek isterseniz verdiğimiz e-mail adresi ile iletişime geçmenizi rica ederiz.";
+            message =bodySahipByLanguage.get(language);
         }
 
         logger.debug("Generated message: {}", message);
@@ -58,6 +68,7 @@ public class NotificationServiceImpl {
             messagePostProcessor.getMessageProperties().setHeader("addType", addType);
             messagePostProcessor.getMessageProperties().setHeader("imageUrls", imageUrls);
             messagePostProcessor.getMessageProperties().setHeader("pCode", pCode);
+            messagePostProcessor.getMessageProperties().setHeader("language", language);
             return messagePostProcessor;
         });
     
@@ -85,9 +96,9 @@ public class NotificationServiceImpl {
         logger.info("Queue {} bound with routingKey: {}", queueName, routingKey);
     }
     
-    public void sendCodeVerification(String email, String code){
+    public void sendCodeVerification(String email, String code, String language){
         logger.info("Sending verification code to email: {}", email);
-        String message = "email=" + email + ", code=" + code;
+        String message = "email=" + email + ", code=" + code + ", language=" + language;
 
         rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message);
 
@@ -95,10 +106,10 @@ public class NotificationServiceImpl {
 
     }
 
-    public void sendRegisterCode(String email, String code){
+    public void sendRegisterCode(String email, String code, String language){
         logger.info("Sending register code to email: {}", email);
-        String message = "email=" + email + ", code=" + code;
-        
+        String message = "email=" + email + ", code=" + code + ", language=" + language;
+
         rabbitTemplate.convertAndSend(EXCHANGE_REGISTER_NAME, ROUTING_REGISTER_KEY, message);
 
         logger.info("Verification code message sent for email: {}", email);

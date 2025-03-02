@@ -80,7 +80,7 @@ public class AddServiceImpl implements AddService{
         List<String> imageUrls=s3Service.uploadFilesToFolder(Long.toString(addDb.getId()), fileDatas);
         logger.info("Uploaded {} images for ad ID: {}", imageUrls.size(), addDb.getId());
         if(add.getStatus()==0){
-            emailServiceImpl.sendToAdmins(owner.getEmail(), imageUrls, addDb.getId());
+            emailServiceImpl.sendToAdmins(owner.getEmail(), imageUrls, addDb.getId(),addDb.getPcode(),owner.getLanguage());
             logger.info("Notification email sent to admins for ad ID: {}", addDb.getId());
         }
         addDb.setImages(imageUrls);
@@ -90,7 +90,7 @@ public class AddServiceImpl implements AddService{
     public Add save(Add add,User user){
         logger.info("Updating ad with ID: {}", add.getId());
         if(add.getStatus()==2){
-            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type(),add.getPcode());
+            notificationServiceImpl.sendNotification(user.getEmail(), add.getCity(), add.getDistrict(),add.getImages(), add.getAdd_type(),add.getPcode(),user.getLanguage());
             logger.info("Notification sent to user: {} for ad ID: {}", user.getEmail());
         }
         return addRepository.save(add);

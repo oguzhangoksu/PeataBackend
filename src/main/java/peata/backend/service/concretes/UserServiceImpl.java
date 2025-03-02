@@ -86,12 +86,15 @@ public class UserServiceImpl implements UserService {
         registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
         registerCode.setCode(generateCode.generateVerificationCode());
         registerCodeRepository.save(registerCode);
-        notificationServiceImpl.sendRegisterCode(registerCode.getEmail(),registerCode.getCode());
+        notificationServiceImpl.sendRegisterCode(registerCode.getEmail(),registerCode.getCode(),userDb.getLanguage());
 
         logger.info("Email verification message sent to RabbitMQ for email: {}", registerCode.getEmail());
         logger.info("User saved successfully with ID: {}", userDb.getId());
         return userDb;
     }
+
+
+
     public Boolean updateUser(String currentUsername,UserUpdateRequest user) {
         logger.info("Starting update process for user with email: {}", user.getEmail());
         Optional<User> optionalUserDb = userRepository.findByUsername(currentUsername);
@@ -117,12 +120,24 @@ public class UserServiceImpl implements UserService {
         userDb.setCity(user.getCity());
         userDb.setDistrict(user.getDistrict());
         userDb.setIsAllowedNotification(user.getIsAllowedNotification());
+        userDb.setLanguage(user.getLanguage());
+
         if(userDb.getEmailValidation()){
             userDb.setEmailValidation(true);
         }
         logger.info("User with ID {} successfully updated in the database.", userDb.getId());
         userRepository.save(userDb);
         logger.info("Update process for user with ID {} completed successfully.", userDb.getId());
+        return true;
+    }
+
+    public boolean changeLanguage(String username, String language) {
+        logger.info("Changing language for user {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User with username " + username + " not found"));
+        user.setLanguage(language);
+        userRepository.save(user);
+        logger.info("Language for user {} changed to {}", username, language);
         return true;
     }
 
@@ -209,9 +224,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.findEmailsByCityAndDistrict(city, email,publisherEmail);
     }
 
-    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail){
+    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail,String language){
         logger.info("Finding emails for city: {}, district: {}, excluding publisher: {}", city, email, publisherEmail);
-        return userRepository.findEmailsByCityAndDistrictOnValidateEmail(city, email,publisherEmail);
+        return userRepository.findEmailsByCityAndDistrictOnValidateEmail(city, email,publisherEmail,language);
     }
     public User findUserByUsername(String username){
         logger.info("Finding user by username: {}", username);
@@ -243,7 +258,7 @@ public class UserServiceImpl implements UserService {
         passwordResetCodeRepository.save(passwordResetCode);
 
         try{
-            notificationServiceImpl.sendCodeVerification(passwordResetCode.getEmail(),passwordResetCode.getCode());
+            notificationServiceImpl.sendCodeVerification(passwordResetCode.getEmail(),passwordResetCode.getCode(),userDb.getLanguage());
             logger.info("Password reset code sent to {}", passwordResetCode.getEmail());
         }
         catch(Exception e){
@@ -327,7 +342,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
-    public boolean emailValidationCode(String email) {
+    public boolean emailValidationCode(String email,String language) {
         try { 
             RegisterCode registerCode = new RegisterCode();
             registerCode.setEmail(email);
@@ -335,7 +350,7 @@ public class UserServiceImpl implements UserService {
             registerCode.setCode(generateCode.generateVerificationCode());
             registerCodeRepository.save(registerCode);
             logger.info("Verification code generated and saved for email: {}", email);
-            notificationServiceImpl.sendRegisterCode(registerCode.getEmail(), registerCode.getCode());
+            notificationServiceImpl.sendRegisterCode(registerCode.getEmail(), registerCode.getCode(),language);
             logger.info("Verification code email sent to: {}", email);
             return true;
         } catch (Exception e) {
@@ -410,8 +425,8 @@ public class UserServiceImpl implements UserService {
         return true; // Cihaz token başarıyla silindi
     }
 
-    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail) {
-        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail );
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language) {
+        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail,language );
     }
 
 

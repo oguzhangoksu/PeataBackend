@@ -23,7 +23,7 @@ public interface UserService {
     public boolean isUsernameExist(String username);
     public boolean isEmailExist(String email);
     public List<String>findEmailsByCityAndDistrict(String city, String email, String publisherEmail);
-    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail);
+    public List<String> findEmailsByCityAndDistrictOnValidateEmail(String city,String email,String publisherEmail,String language);
     public User findUserByUsername(String username);
     public String createPaswwordResetCode(String identifier);
     public boolean validateVerificationCode(String email, String code);
@@ -33,9 +33,10 @@ public interface UserService {
     public Long findUserIdByUsername(String username);
     public boolean validateRegisterCode(String email, String code);
     public boolean emailValidation(String email, String code);
-    public boolean emailValidationCode(String email);
+    public boolean emailValidationCode(String email,String language);
     public Boolean updateUser(String currentUsername,UserUpdateRequest user);
     public boolean addNewDevice(String username, String deviceToken);
     public boolean deleteDevice(String username, String deviceToken);
-    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail);
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language);
+    public boolean changeLanguage(String username, String language);
 } 

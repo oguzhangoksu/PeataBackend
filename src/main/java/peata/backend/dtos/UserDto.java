@@ -20,4 +20,5 @@ public class UserDto {
     private String role = "ROLE_USER";
     private Boolean isAllowedNotification=false;
     private Boolean emailValidation;
+    private String language;
 }

@@ -73,6 +73,9 @@ public class User {
     @Column(name="emailValidation",nullable = true  )
     private Boolean emailValidation=false;
 
+    @Column(name="Language",nullable = true)
+    private String language = "en";
+
     @Column(name="favoriteAdds")
     private List<Long> favoriteAdds= new ArrayList<>();
 

@@ -56,7 +56,7 @@ public class RateLimitFilter implements Filter {
             HttpServletResponse httpResponse = (HttpServletResponse) response;
             httpResponse.setStatus(429);
             httpResponse.getWriter().write("Rate limit exceeded. Try again later.");
-            System.out.println("Rate limit exceeded for IP: " + ipAddress);
+            logger.info("Rate limit exceeded for IP:", ipAddress);
         }
     }
 

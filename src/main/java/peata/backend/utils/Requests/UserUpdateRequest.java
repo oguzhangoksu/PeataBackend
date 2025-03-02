@@ -13,5 +13,6 @@ public class UserUpdateRequest {
     private String city;
     private String district;
     private Boolean isAllowedNotification=false;
+    private String language;
 
 }

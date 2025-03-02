@@ -26,6 +26,7 @@ import peata.backend.utils.Requests.EmailValidationRequest;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Requests.UserUpdateRequest;
 import peata.backend.utils.Responses.JwtResponse;
+import peata.backend.utils.Responses.LanguageRequest;
 import peata.backend.utils.Responses.UserResponse;
 import peata.backend.dtos.UserDto;
 
@@ -104,6 +105,16 @@ public class UserController {
             logger.error("Login failed for user: {}", loginRequest.getIdentifier(), e);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
         }
+    }
+
+    @Operation(summary = "Public API", description = "Allows the user to change their preferred language. The user's identity is verified via JWT, and the language preference is updated.", security = @SecurityRequirement(name = "bearerAuth"))
+    @PostMapping("/changeLanguage")
+    public ResponseEntity<?> changeLanguage(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody LanguageRequest language) {
+        if(userService.changeLanguage(userPrincipal.getUsername(),language.getLanguage())){
+            return ResponseEntity.ok("Langauge changed successfully.");
+        }
+        return ResponseEntity.badRequest().body("Language change failed.");
+
     }
 
     @Operation(summary = "Secured API", description = "This endpoint returns the authenticated user's information based on the JWT token provided in the request.", security = @SecurityRequirement(name = "bearerAuth"))
@@ -299,7 +310,10 @@ public class UserController {
     @PostMapping("/getEmailVerificationCode")
     public ResponseEntity<String> getEmailVerificationCode(@RequestBody EmailRequest emailRequest) {
         try {
-            if (userService.emailValidationCode(emailRequest.getEmail())) {
+            if(emailRequest.getLanguage() == null){
+                emailRequest.setLanguage("tr");
+            }
+            if (userService.emailValidationCode(emailRequest.getEmail(),emailRequest.getLanguage())) {
                 return ResponseEntity.ok("Verification code sent to email");
             } else {
                 return ResponseEntity.badRequest().body("Failed to generate verification code");
