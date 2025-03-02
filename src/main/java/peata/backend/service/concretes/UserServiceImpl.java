@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.mail.MessagingException;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import peata.backend.dtos.AddDto;
@@ -36,7 +36,7 @@ import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.GenerateCode;
-import peata.backend.utils.UserPrincipal;
+
 import peata.backend.utils.Requests.UserUpdateRequest;
 
 
@@ -58,8 +58,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private DynamicListenerService dynamicListenerService;
 
-    @Autowired
-    private EmailServiceImpl emailServiceImpl;
 
     @Autowired
     private PasswordResetCodeRepository passwordResetCodeRepository;

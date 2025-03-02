@@ -24,7 +24,7 @@ public class EmailServiceImpl {
     private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     private final List<String> admins =Arrays.asList("yuky.yt@gmail.com", "oguzhang15@hotmail.com");
-      @Autowired
+    @Autowired
     private JavaMailSender mailSender;
 
     @Autowired
