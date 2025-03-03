@@ -60,7 +60,6 @@ public class NotificationServiceImpl {
 
         logger.debug("Generated message: {}", message);
 
-
         rabbitTemplate.convertAndSend("notifications-exchange", routingKey, message, messagePostProcessor -> {
             messagePostProcessor.getMessageProperties().setHeader("publisherEmail", publisherEmail);
             messagePostProcessor.getMessageProperties().setHeader("city", city);

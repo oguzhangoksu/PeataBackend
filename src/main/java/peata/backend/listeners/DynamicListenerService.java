@@ -134,16 +134,16 @@ public class DynamicListenerService {
     //Firebase Notification system
     private void sendNotificationsToDevices(List<String> deviceTokens, String messageContent, String publisherEmail, String pCode,String addType,String language) {
         HashMap<String, String> titleByLanguage = new HashMap<>(){{
-            put("tr", "Bulunduğunuz İlçede Bir İlan Açıldı");
-            put("en", "An announcement has been opened in your district");
+            put("tr", "Evcil Hayvana Yardım Edin 🔔");
+            put("en", "Help A Pet Today 🔔");
         }};
         HashMap<String, String> bodyKayipByLanguage = new HashMap<>(){{
             put("tr", "🐾 Kayıp evcil hayvan ilanı çevrenizde bulundu. İlanı görmek için tıklayın.");
-            put("en", "🐾 Lost pet announcement found in your area. Click to see the ad.");
+            put("en", "🐾 There is a lost pet in your area.");
         }};
         HashMap<String, String> bodySahipByLanguage = new HashMap<>(){{
             put("tr", "🏡 Sahiplendirme ilanı çevrenizde açıldı. İlanı görmek için tıklayın.");
-            put("en", "🏡The adoption announcement has been opened in your area. Click to see the ad.");
+            put("en", "🏡 There is a pet in your area waiting to be adopted.");
         }};
 
         try {

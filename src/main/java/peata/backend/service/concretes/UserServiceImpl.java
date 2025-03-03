@@ -443,6 +443,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(userDto.getRole());
         user.setIsAllowedNotification(userDto.getIsAllowedNotification());
         user.setEmailValidation(userDto.getEmailValidation());
+        user.setLanguage(userDto.getLanguage());
         return user;
     }
 

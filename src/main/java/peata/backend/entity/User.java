@@ -15,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -73,8 +74,8 @@ public class User {
     @Column(name="emailValidation",nullable = true  )
     private Boolean emailValidation=false;
 
-    @Column(name="Language",nullable = true)
-    private String language = "en";
+    @Column(name="language", nullable = true)
+    private String language = "tr";
 
     @Column(name="favoriteAdds")
     private List<Long> favoriteAdds= new ArrayList<>();
@@ -91,5 +92,11 @@ public class User {
                 ", username='" + username + '\'' +
                 ", favoriteAddsCount=" + (favoriteAdds != null ? favoriteAdds.size() : 0) + // Avoids direct collection reference
                 '}';
+    }
+    @PrePersist
+    public void prePersist() {
+        if (language == null) {
+            language = "tr";
+        }
     }
 }
