@@ -74,6 +74,7 @@ public class AddController {
                 "                    status:status\r\n" + //
                 "                    email:email\r\n" + //
                 "                    phone:phone\r\n" + //
+                "                    countryId:countryId\r\n" + //
                 "                })",
     security = @SecurityRequirement(name = "bearerAuth")
     )   
@@ -150,6 +151,18 @@ public class AddController {
         logger.info("Fetching paginated adds: page={}, size={}", page, size);
         Page<AddDto> addDtos=addService.getPaginatedAdds(page,size);
         logger.info("Successfully retrieved {} adds for page {} with size {}", addDtos.getTotalElements(), page, size);
+        return ResponseEntity.ok(addDtos);
+    }
+
+    @Operation(summary = "Public API ", 
+    description = "Fetches a paginated list of adds based on their status (e.g., Pending, Rejected, Approved). User authentication is required. status=0(Pending),status=1(Rejected),status=2(Approved) ",
+    security = @SecurityRequirement(name = "bearerAuth")
+    )   
+    @GetMapping("/getPaginatedAddsByCountryId")
+    public ResponseEntity<Page<AddDto>> getPaginatedAddswithCountryId(@RequestParam int countryId,@RequestParam int page,@RequestParam int size) {
+        logger.info("Received request for paginated adds with countryId: {}, page: {}, size: {}", countryId, page, size);
+        Page<AddDto> addDtos = addService.getPaginatedAddswithCountryId(countryId, page, size);
+        logger.info("Returning paginated adds with status: {}", countryId);
         return ResponseEntity.ok(addDtos);
     }
 
@@ -253,6 +266,7 @@ public class AddController {
         logger.info("Returning paginated adds with status: {}", status);
         return ResponseEntity.ok(addDtos);
     }
+
 
 
     

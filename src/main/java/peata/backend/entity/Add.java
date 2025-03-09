@@ -80,6 +80,9 @@ public class Add {
     @Column(name="status",nullable = false)
     private int status = 0;
     
+    @Column(name="country_id", nullable = false)
+    private int countryId = 1;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "user_id")

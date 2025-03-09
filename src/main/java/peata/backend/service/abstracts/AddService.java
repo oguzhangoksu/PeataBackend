@@ -31,5 +31,7 @@ public interface AddService {
     public List<String> addImage(AddDto addDto,List<MultipartFile> files)throws IOException;
     public Add updateAddDto(UpdateAddInfoRequest addInfoRequest);
     public AddDto findAddByPcode(String pCode);
+    public List<AddDto> findAddsbyCountryId(int countryId);
+    public Page<AddDto> getPaginatedAddswithCountryId(int countryId,int page, int size);
 
 }

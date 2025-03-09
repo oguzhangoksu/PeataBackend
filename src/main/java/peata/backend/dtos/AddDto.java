@@ -23,8 +23,6 @@ public class AddDto {
     private String phone;
     private String email;
     private Long user_id;
+    private int countryId;
     
-
-
-
 }

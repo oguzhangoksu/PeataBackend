@@ -19,6 +19,7 @@ public class AddRequest {
     private String email;
     private int status=0;
     private Long user_id;
+    private int countryId=1;
 
     @Override
     public String toString() {
@@ -34,6 +35,10 @@ public class AddRequest {
                 ", district='" + district + '\'' +
                 ", add_type='" + add_type + '\'' +
                 ", user_id=" + user_id +
+                ", phone='" + phone + '\'' +
+                ", email='" + email + '\'' +
+                ", status=" + status +
+                ", countryId=" + countryId +
                 '}';
     }
 

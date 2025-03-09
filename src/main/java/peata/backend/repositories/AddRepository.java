@@ -13,4 +13,6 @@ public interface AddRepository extends JpaRepository<Add,Long>{
 
     Page<Add> findByStatus(int status,PageRequest pageRequest);
     List<Add> findByPcode(String pcode);
+    List<Add> findByCountryId(int countryId);
+    Page<Add> findByCountryId(int countryId,PageRequest pageRequest);
 }

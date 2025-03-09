@@ -73,6 +73,7 @@ public class AddServiceImpl implements AddService{
         add.setAdd_type(addRequest.getAdd_type());
         add.setPhone(addRequest.getPhone());
         add.setEmail(addRequest.getEmail());
+        add.setCountryId(addRequest.getCountryId());
         User owner=userService.findUserById(addRequest.getUser_id());
         add.setUser(owner);
         Add addDb=addRepository.save(add);
@@ -158,7 +159,22 @@ public class AddServiceImpl implements AddService{
 
         return adds.map(this::convertToDto);
     }
+    
+    public List<AddDto> findAddsbyCountryId(int countryId){
+        logger.info("Fetching ads with country ID: {}", countryId);
+        List<Add> addList =addRepository.findByCountryId(countryId);
+        List<AddDto> addDtos = new ArrayList<>();
+        for(Add add : addList){
+            addDtos.add(convertToDto(add));
+        }
+        return addDtos;
+    }
+    public Page<AddDto> getPaginatedAddswithCountryId(int countryId,int page, int size){
+        logger.info("Fetching paginated ads with countryId {}: page {}, size {}", countryId, page, size);
+        Page<Add> adds = addRepository.findByCountryId(countryId,PageRequest.of(page, size));
 
+        return adds.map(this::convertToDto);
+    }
 
     public boolean existsById(Long id) {
         logger.info("Checking if ad exists with ID: {}", id);
@@ -229,6 +245,7 @@ public class AddServiceImpl implements AddService{
         dto.setStatus(add.getStatus());
         dto.setUser_id(add.getUser().getId());
         dto.setPCode(add.getPcode());
+        dto.setCountryId(add.getCountryId());
         return dto;
     }
 
