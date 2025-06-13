@@ -53,7 +53,7 @@ public class Add {
     @Column(name="gender",nullable = false)
     private String gender;
 
-    @Column(name="description",nullable = false)
+    @Column(name="description",nullable = false, length = 2000)
     private String description;
 
     @Column(name="images",nullable = false)

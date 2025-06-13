@@ -68,7 +68,7 @@ public class EmailServiceImpl {
 
 
     public void sendBatchEmails(List<String> recipients, String message, String publisherEmail, List<String> imageUrls, String pCode, String language) {
-        logger.info("Starting batch email sending process to {} recipients.", recipients.size());
+
 
         for (String recipient : recipients) {
             try {
@@ -80,15 +80,13 @@ public class EmailServiceImpl {
 
             }
         }
-        logger.info("Batch email sending process completed.");
     }
 
     
     public void sendToAdmins( String publisherEmail, List<String> imageUrls,Long addId ,String pCode,String language) {
-        logger.info("Sending email to admins regarding Add ID: {}", addId);
 
         for(String image: imageUrls){
-            logger.debug("Image URL: {}", image);
+            logger.info("Image URL: {}", image);
         }
         for (String admin : admins) {
             try {
@@ -99,13 +97,9 @@ public class EmailServiceImpl {
             }
         }
 
-        logger.info("Admin email sending process completed.");
-
     }
 
     private void sendEmail(String to, String message, String publisherEmail, List<String> imageUrls, String pCode,String language) throws MessagingException{
-        logger.debug("Preparing email to be sent to: {}", to);
-       
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -130,14 +124,12 @@ public class EmailServiceImpl {
         mimeMessage.setHeader("X-Priority", "1"); 
         mimeMessage.setHeader("Priority", "urgent");
 
-        logger.debug("Email to {} prepared successfully.", to);
-        mailSender.send(mimeMessage);
-       
+        mailSender.send(mimeMessage); 
 
     }
 
     private void sendEmailToAdmin(String to, String publisherEmail, List<String> imageUrls, Long addId,String pCode,String language) throws MessagingException {
-        logger.debug("Preparing email to admin: {}", to);
+        logger.info("Preparing email to admin: {}", to);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
@@ -156,7 +148,7 @@ public class EmailServiceImpl {
         mimeMessage.setHeader("X-Priority", "1");
         mimeMessage.setHeader("Priority", "urgent");
 
-        logger.debug("Email to admin {} prepared successfully.", to);
+        logger.info("Email to admin {} prepared successfully.", to);
         mailSender.send(mimeMessage);
     }
 

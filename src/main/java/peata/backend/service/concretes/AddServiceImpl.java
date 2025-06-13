@@ -99,7 +99,6 @@ public class AddServiceImpl implements AddService{
     
     
     public void delete(Long id){
-        logger.info("Deleting ad with ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         s3Service.deleteFolder(""+add.getId()+"/");
@@ -182,13 +181,11 @@ public class AddServiceImpl implements AddService{
     }
 
     public void deleteImage(AddDto addDto, List<String> images) {
-        logger.info("Deleting image {} for ad ID: {}", images, addDto.getId());
         Add add = addRepository.findById(addDto.getId())
            .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addDto.getId() + " not found"));
         for (String image : images) { 
             add.getImages().remove(image);
-            
-            System.out.println("Deleting image: " + image);
+            logger.info("Deleting image {} for ad ID: {}", image, addDto.getId());
             List<String> result =extractFolderAndFileName(image);
             s3Service.deleteImageInFolder(result.get(0), result.get(1));
         }
@@ -199,7 +196,6 @@ public class AddServiceImpl implements AddService{
         Add addDb = addRepository.findById(addDto.getId())
             .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addDto.getId() + " not found"));
         List<FileData> fileDatas = new ArrayList<FileData>();
-        logger.info("Starting to upload images for Add ID: {}", addDto.getId());
         for (MultipartFile file : files) {
             try {
                 FileData fileData = new FileData();
@@ -221,7 +217,6 @@ public class AddServiceImpl implements AddService{
             logger.info("Image URL added to Add ID {}: {}", addDto.getId(), imageUrl);
         }
         addRepository.save(addDb);
-        logger.info("Add ID {} updated with new images successfully.", addDto.getId());
         return addDb.getImages();
     }
 

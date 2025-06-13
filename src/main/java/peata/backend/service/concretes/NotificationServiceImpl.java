@@ -58,8 +58,6 @@ public class NotificationServiceImpl {
             message =bodySahipByLanguage.get(language);
         }
 
-        logger.debug("Generated message: {}", message);
-
         rabbitTemplate.convertAndSend("notifications-exchange", routingKey, message, messagePostProcessor -> {
             messagePostProcessor.getMessageProperties().setHeader("publisherEmail", publisherEmail);
             messagePostProcessor.getMessageProperties().setHeader("city", city);
@@ -84,11 +82,7 @@ public class NotificationServiceImpl {
         // Create and declare the queue
         Queue queue = rabbitMqConfig.createDurableQueue(queueName);
         rabbitAdmin.declareQueue(queue); // Declare the queue
-
-
-        logger.debug("Queue created: {}", queueName);
-
-     
+   
         Binding binding = rabbitMqConfig.createBinding(queue, routingKey); 
         rabbitAdmin.declareBinding(binding); 
 
@@ -96,7 +90,6 @@ public class NotificationServiceImpl {
     }
     
     public void sendCodeVerification(String email, String code, String language){
-        logger.info("Sending verification code to email: {}", email);
         String message = "email=" + email + ", code=" + code + ", language=" + language;
 
         rabbitTemplate.convertAndSend(EXCHANGE_NAME, ROUTING_KEY, message);
@@ -106,7 +99,6 @@ public class NotificationServiceImpl {
     }
 
     public void sendRegisterCode(String email, String code, String language){
-        logger.info("Sending register code to email: {}", email);
         String message = "email=" + email + ", code=" + code + ", language=" + language;
 
         rabbitTemplate.convertAndSend(EXCHANGE_REGISTER_NAME, ROUTING_REGISTER_KEY, message);

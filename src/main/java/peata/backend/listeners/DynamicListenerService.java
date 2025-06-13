@@ -117,7 +117,7 @@ public class DynamicListenerService {
     }
 
     private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType,String language) {
-        System.out.println("Received message in " + city + "/" + district + ": " + message);
+        logger.info("Received message in " + city + "/" + district + ": " + message);
         
 
         List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail,language);
@@ -203,6 +203,7 @@ public class DynamicListenerService {
 
     @RabbitListener(queues = "email-queue")
     public void receiveMessage(String messageBody) {
+        logger.info("Received message from email-queue: {}", messageBody);
         Map<String, String> message = parseMessage(messageBody);
         String email = message.get("email");
         String code = message.get("code");
@@ -215,8 +216,9 @@ public class DynamicListenerService {
 
         try {
             emailServiceImpl.sendVerificationCode(email, code,language);
-            System.out.println("Verification code sent to " + email);
+            logger.info("Verification code successfully sent to {}", email);
         } catch (MessagingException e) {
+            logger.error("Failed to send verification email to {}: {}", email, e.getMessage(), e);
             throw new RuntimeException("Failed to send verification email to " + email, e);
         }
     }
@@ -270,8 +272,7 @@ public class DynamicListenerService {
                         logger.warn("Message missing required fields: email={} code={}", email, code);
                         return;
                     }
-                    emailServiceImpl.sendVerificationCode(email, code, language);
-                    System.out.println("Verification code sent to " + email);
+                    emailServiceImpl.sendVerificationCode(email, code, language);  
                 }
                 catch(Exception e){
                     logger.error("Error processing message: {}", e.getMessage(), e);

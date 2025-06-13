@@ -40,7 +40,7 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
-                    .requestMatchers("/user/auth/login", "/user/auth/register","/admin/auth/login","/user/getPasswordCode","/user/deneme","/user/changePassword","/add/getPaginatedAdds","/user/emailVerification","/user/getEmailVerificationCode","/suggestions/suggest","/add/findAddByPcode","game/scoreBoard","/district/getAll","/district/getById/**","/country/getById/**","/country/getAll","/city/getAll","/city/getById/**","/city/getCitiesByCountryId/**","/city/getCitiesByCountryId/**","/district/getDistrictsByCityId","/district/getDistrictsByCountryId","/add/getPaginatedAddsByCountryId").permitAll()
+                    .requestMatchers("/user/auth/login", "/user/auth/register","/admin/auth/login","/user/getPasswordCode","/user/deneme","/user/changePassword","/add/getPaginatedAdds","/user/emailVerification","/user/getEmailVerificationCode","/suggestions/suggest","/add/findAddByPcode","game/scoreBoard","/district/getAll","/district/getById/**","/country/getById/**","/country/getAll","/city/getAll","/city/getById/**","/city/getCitiesByCountryId/**","/city/getCitiesByCountryId/**","/district/getDistrictsByCityId","/district/getDistrictsByCountryId","/add/getPaginatedAddsByCountryId","/add/findAddByPcode","/version/validate/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","adminpanel/*").permitAll()
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .requestMatchers("/panel/**").hasRole("ADMIN")

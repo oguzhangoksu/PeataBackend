@@ -84,7 +84,6 @@ public class AddController {
         String username= userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(username);
 
-        logger.info("User {} is trying to save an ad.", username);
         try {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
             addRequest.setUser_id(userDb.getId());
@@ -104,7 +103,7 @@ public class AddController {
                 }
             }
             Add addDb =addService.save(addRequest,fileDatas);
-            logger.info("Ad saved successfully with ID: {}", addDb.getId());
+            logger.info("Ad saved successfully with ID: {} , {}", addDb.getId(),username);
             return ResponseEntity.ok(new AddResponse("Add saved:",addDb.getId(),addDb.getImages()));
             
             
@@ -124,9 +123,9 @@ public class AddController {
     )   
     @GetMapping("/findAddById")
     public ResponseEntity<AddDto> findAddById(@RequestParam Long id) {
-        logger.info("Fetching ad with ID: {}", id);
+        
         AddDto addDto=addService.findAddById(id);
-        logger.info("Successfully retrieved ad: {}", addDto);
+        logger.info("Successfully retrieved ad: {}", addDto.getId());
         return ResponseEntity.ok(addDto);
     }
     
@@ -136,7 +135,6 @@ public class AddController {
     )   
     @GetMapping("/findImagesByAddId")
     public ResponseEntity<List<String>> findImagesByAddId(@RequestParam Long id) {
-        logger.info("Fetching images for ad with ID: {}", id);
         List<String> images=addService.findImagesByAddId(id);
         logger.info("Successfully retrieved images for ad ID {}: {}", id, images);
         return ResponseEntity.ok(images);
@@ -148,7 +146,6 @@ public class AddController {
     )   
     @GetMapping("/getPaginatedAdds")
     public ResponseEntity<Page<AddDto>> getPaginatedAdds(@RequestParam int page,@RequestParam int size) {
-        logger.info("Fetching paginated adds: page={}, size={}", page, size);
         Page<AddDto> addDtos=addService.getPaginatedAdds(page,size);
         logger.info("Successfully retrieved {} adds for page {} with size {}", addDtos.getTotalElements(), page, size);
         return ResponseEntity.ok(addDtos);
@@ -160,9 +157,8 @@ public class AddController {
     )   
     @GetMapping("/getPaginatedAddsByCountryId")
     public ResponseEntity<Page<AddDto>> getPaginatedAddswithCountryId(@RequestParam int countryId,@RequestParam int page,@RequestParam int size) {
-        logger.info("Received request for paginated adds with countryId: {}, page: {}, size: {}", countryId, page, size);
         Page<AddDto> addDtos = addService.getPaginatedAddswithCountryId(countryId, page, size);
-        logger.info("Returning paginated adds with status: {}", countryId);
+        logger.info("Received request for paginated adds with countryId: {}, page: {}, size: {}", countryId, page, size);
         return ResponseEntity.ok(addDtos);
     }
 
@@ -175,7 +171,6 @@ public class AddController {
     public ResponseEntity<String> delete(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         String username = userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(username);
-        logger.info("User {} is trying to delete ad with ID: {}", username, id);
         if (userDb == null) {
             logger.warn("User not found: {}", username);
             return ResponseEntity.badRequest().body("User not found");
@@ -187,7 +182,7 @@ public class AddController {
         while (iterator.hasNext()) {
             Add add = iterator.next();
             if (add.getId() != null && add.getId().equals(id)) {
-                logger.info("Removing ad with ID: {}", id);
+
                 iterator.remove();
                 
                 boolean adExists = addService.existsById(id); 
@@ -205,7 +200,7 @@ public class AddController {
             logger.warn("Ad ID {} not found in user's ads list for user: {}", id, username);
             return ResponseEntity.badRequest().body("Ad ID not found in user's ads list");
         }
-        logger.info("Ad deleted successfully with ID: {}", id);
+        logger.info("Ad deleted successfully with ID: {} by {}", id , username);
         return ResponseEntity.ok("Ad deleted");
     }
     
@@ -235,22 +230,19 @@ public class AddController {
     )   
     @PostMapping("/getAddsWithIds")
         public ResponseEntity<List<AddDto>> getAddsWithIds(@RequestParam List<Long> idsList) {
-        logger.info("Received request to get adds with IDs: {}", idsList);
         List<AddDto> addsList = new ArrayList<>();
         for (Long id : idsList) {
             try {
                 AddDto addDb = addService.findAddById(id);
                 addsList.add(addDb);
-                logger.info("Add found for ID: {}", id);
             } catch (EntityNotFoundException e) {
-                System.out.println("Add not found for ID: " + id);
                 logger.warn("Add not found for ID: {}", id);
                 continue; 
             } catch (Exception e) {
                 logger.error("An error occurred while fetching add with ID: {}. Error: {}", id, e.getMessage());
             }
         }
-        logger.info("Returning list of adds found: {}", addsList);
+        logger.info("Returning list of Favorite Adds: ");
         return ResponseEntity.ok(addsList);
     }
 
@@ -261,14 +253,10 @@ public class AddController {
     )   
     @GetMapping("/status")
     public ResponseEntity<Page<AddDto>> getPaginatedAddswithStatus(@RequestParam int status,@RequestParam int page,@RequestParam int size) {
-        logger.info("Received request for paginated adds with status: {}, page: {}, size: {}", status, page, size);
         Page<AddDto> addDtos = addService.getPaginatedAddswithStatus(status, page, size);
-        logger.info("Returning paginated adds with status: {}", status);
+        logger.info("Returning paginated adds with status: {} , page:{}, size: {}", status, page, size);
         return ResponseEntity.ok(addDtos);
     }
-
-
-
     
     @Operation(summary = "Secured API ", 
     description = "This endpoint requires authentication. Data Json'nın stringe dönüştürülmüş hali "+
@@ -365,7 +353,7 @@ public class AddController {
         if(addDto.getUser_id() == user.getId()){
 
             addService.deleteImage(addDto, deleteImageRequest.getImages());
-            return ResponseEntity.ok("Images deleted successfully.");
+            return ResponseEntity.ok("Images deleted successfully. for addId: "+deleteImageRequest.getAddId());
         }
         else{
             return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
@@ -382,11 +370,12 @@ public class AddController {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
         AddDto addDto=addService.findAddById(addId);
         if(addDto.getUser_id() == user.getId()){
-
+            logger.info("User {} is adding {} images to adId {}", user.getUsername(), files.size(), addId);
             addService.addImage(addDto, files);
             return ResponseEntity.ok("Images deleted successfully.");
         }
         else{
+            logger.info("Unauthorized attempt: User {} trying to add images for adId {} which is not owned by them.", user.getUsername(), addId);
             return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
         }
         
@@ -400,10 +389,11 @@ public class AddController {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
         if(addInfoRequest.getUser_id() == user.getId()){
             addService.updateAddDto(addInfoRequest);
-            
+            logger.info("User {} successfully updated ad info for ad id: {}", user.getUsername(), addInfoRequest.getId());
             return ResponseEntity.ok("Add Info updated successfully.");
         }
         else{
+            logger.warn("Unauthorized update attempt: User {} tried to update ad info for an ad not owned by them.", user.getUsername());
             return ResponseEntity.badRequest().body("This add is not your own. You can't update add.");
         }
         

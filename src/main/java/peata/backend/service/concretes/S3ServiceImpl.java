@@ -4,8 +4,7 @@ package peata.backend.service.concretes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import peata.backend.service.abstracts.S3Service;
@@ -51,13 +50,11 @@ public class S3ServiceImpl implements S3Service{
             String fileName = file.getFileName();
             byte[] fileData = file.getFileData();
 
-            // Create the full file path in S3
             String fullFilePath = folderName + "/" + fileName;
             String contentType = determineContentType(fileName);
 
             logger.info("Uploading file: {} to folder: {}", fileName, folderName);
 
-            // Prepare the S3 PutObjectRequest
             PutObjectRequest request = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fullFilePath)
@@ -65,38 +62,32 @@ public class S3ServiceImpl implements S3Service{
                     .build();
 
             try {
-                // Upload the file
+
                 s3Client.putObject(request, RequestBody.fromBytes(fileData));
 
-                // Generate the public URL for the uploaded file
                 String imageUrl = generateFileUrl(fullFilePath);
                 imageUrls.add(imageUrl);
-
-                logger.info("File uploaded successfully: {}", fileName);
             } catch (SdkException e) {
                 logger.error("Failed to upload file: {} to folder: {}. Error: {}", fileName, folderName, e.getMessage());
+                 throw new FileUploadException("File upload failed: " + fileName, e);
             }
         }
 
-        return imageUrls; // Return the list of image URLs
+        return imageUrls; 
     }
 
      public byte[] downloadFileFromFolder(String fileName,String folderName) throws IOException {
-        // The key is the path to the file inside the S3 bucket
-        String fullFilePath = folderName + fileName;  // E.g. folderName/my-image.png
 
-        logger.info("Downloading file: {} from folder: {}", fileName, folderName);
+        String fullFilePath = folderName + fileName; 
 
-        // Create a GetObjectRequest
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fullFilePath)  // Specify the file path inside S3
+                .key(fullFilePath)  
                 .build();
 
-        // Get the file as a byte array
           try {
             ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(getObjectRequest);
-            logger.info("File downloaded successfully: {}", fileName);
+            logger.info("File downloaded successfully, filename:{} , foldername:{}", fileName, folderName);
             return objectBytes.asByteArray();
         } catch (SdkException e) {
             logger.error("Failed to download file: {}. Error: {}", fileName, e.getMessage());
@@ -115,7 +106,6 @@ public class S3ServiceImpl implements S3Service{
 
         logger.info("Deleting folder: {}", folderName);
 
-        // Initial request to list objects with the folder prefix
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
                 .bucket(bucketName)
                 .prefix(folderName)
@@ -124,15 +114,12 @@ public class S3ServiceImpl implements S3Service{
         ListObjectsV2Response listObjectsResponse;
         try {
             do {
-                // Fetch the objects in the folder
                 listObjectsResponse = s3Client.listObjectsV2(listObjectsRequest);
 
-                // Delete each object found
                 for (S3Object s3Object : listObjectsResponse.contents()) {
                     deleteFile(s3Object.key());
                 }
 
-                // Update the request to continue with the next batch (pagination)
                 String nextContinuationToken = listObjectsResponse.nextContinuationToken();
                 listObjectsRequest = listObjectsRequest.toBuilder()
                         .continuationToken(nextContinuationToken)
@@ -147,7 +134,6 @@ public class S3ServiceImpl implements S3Service{
     }
     
     public void deleteFile(String filename) {
-        logger.info("Deleting file: {}", filename);
         DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucketName)
                 .key(filename)
@@ -155,16 +141,14 @@ public class S3ServiceImpl implements S3Service{
 
         try {
             s3Client.deleteObject(deleteObjectRequest);
-            logger.info("File deleted successfully: {}", filename);
         } catch (SdkException e) {
             logger.error("Failed to delete file: {}. Error: {}", filename, e.getMessage());
         }
     }
 
     public void deleteImageInFolder(String folderName, String fileName) {
-        String fileKey = folderName + "/" + fileName; // Construct the file key
-        logger.info("Attempting to delete image: {} in folder: {}", fileName, folderName);
-        deleteFile(fileKey); // Use the deleteFile method to delete the specific file
+        String fileKey = folderName + "/" + fileName; 
+        deleteFile(fileKey); 
         logger.info("Image deleted successfully: {} in folder: {}", fileName, folderName);
     }
 
@@ -176,8 +160,7 @@ public class S3ServiceImpl implements S3Service{
         } else if (fileName.endsWith(".gif")) {
             return "image/gif";
         }
-        // Add more file types if needed
-        return "application/octet-stream"; // Default for unknown file types
+        return "application/octet-stream"; 
     }
 
     

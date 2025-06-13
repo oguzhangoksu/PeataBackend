@@ -17,6 +17,9 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
             .info(new Info().title("Your API Title").version("1.0"))
+            .addServersItem(new io.swagger.v3.oas.models.servers.Server()
+                .url("https://patyapp.com.tr")
+                .description("Prod Sunucu"))
             .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
             .components(new io.swagger.v3.oas.models.Components()
                 .addSecuritySchemes("bearerAuth", new SecurityScheme()

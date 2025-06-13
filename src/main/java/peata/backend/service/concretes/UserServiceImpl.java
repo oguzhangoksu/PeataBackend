@@ -96,13 +96,11 @@ public class UserServiceImpl implements UserService {
 
 
     public Boolean updateUser(String currentUsername,UserUpdateRequest user) {
-        logger.info("Starting update process for user with email: {}", user.getEmail());
         Optional<User> optionalUserDb = userRepository.findByUsername(currentUsername);
         if (optionalUserDb.isEmpty()) {
             logger.warn("User with username {} not found. Update process aborted.", user.getUsername());
             return false;
         }
-        logger.info("User with username {} found. Proceeding with update.", user.getUsername());
         
         User userDb = optionalUserDb.get();
         
@@ -111,7 +109,7 @@ public class UserServiceImpl implements UserService {
             notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
             dynamicListenerService.createListener(user.getCity(), user.getDistrict());
         }
-        logger.debug("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
+        logger.info("Updating details for user ID {}: email, password, name, surname, phone, city, and district.", userDb.getId());
         userDb.setUsername(user.getUsername());
         userDb.setEmail(user.getEmail());
         userDb.setName(user.getName());
@@ -125,14 +123,12 @@ public class UserServiceImpl implements UserService {
         if(userDb.getEmailValidation()){
             userDb.setEmailValidation(true);
         }
-        logger.info("User with ID {} successfully updated in the database.", userDb.getId());
         userRepository.save(userDb);
         logger.info("Update process for user with ID {} completed successfully.", userDb.getId());
         return true;
     }
 
     public boolean changeLanguage(String username, String language) {
-        logger.info("Changing language for user {}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User with username " + username + " not found"));
         user.setLanguage(language);
@@ -142,7 +138,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean addFavorite(Long AddId,String username){
-        logger.info("Adding ad with ID {} to user {}'s favorites", AddId, username);
         User user=findUserByUsername(username);
 
         if(user.getFavoriteAdds()==null){
@@ -165,14 +160,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public void delete(Long id){
-        logger.info("Deleting user with ID {}", id);
         User user =userRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("User with ID " + id + " not found"));
         userRepository.delete(user);
         logger.info("User with ID {} deleted successfully", id);
     }
     public List<User> allUsers(){
-        logger.info("Fetching all users");
         List<User> usersDb= userRepository.findAll();
         logger.info("Fetched {} users", usersDb.size());
         return usersDb;
@@ -186,7 +179,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public Set<Add> findUsersAddsById(String username){
-        logger.info("Finding ads for user {}", username);
         User user =userRepository.findByUsername(username)
             .orElseThrow(()-> new EntityNotFoundException("User with Username " + username + " not found"));
         return user.getAds();
@@ -203,7 +195,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean changeNotificationStatus(User user){
-        logger.info("Changing notification status for user {}", user.getEmail());
         user.setIsAllowedNotification(!user.getIsAllowedNotification());
         userRepository.save(user);
         logger.info("Notification status for user {} changed to {}", user.getEmail(), user.getIsAllowedNotification());
@@ -229,7 +220,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findEmailsByCityAndDistrictOnValidateEmail(city, email,publisherEmail,language);
     }
     public User findUserByUsername(String username){
-        logger.info("Finding user by username: {}", username);
         User user= userRepository.findByUsername(username)
             .orElseThrow(()-> new EntityNotFoundException("User with  " + username + " not found"));
 
@@ -239,7 +229,6 @@ public class UserServiceImpl implements UserService {
    public String createPaswwordResetCode(String identifier) {
         logger.info("Creating password reset code for identifier: {}", identifier);
         Optional<User> userOpt = userRepository.findByUsername(identifier);
-        System.out.println(userOpt.isPresent() ? userOpt.get() : "User not found by username");
         if (!userOpt.isPresent()) {
             userOpt = userRepository.findByEmail(identifier);
             if (!userOpt.isPresent()) {
@@ -273,11 +262,10 @@ public class UserServiceImpl implements UserService {
 
 
     public boolean validateVerificationCode(String email, String code) {
-        logger.info("Validating verification code for email: {}", email);
         List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmail(email);
         if (listPasswordResetCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
-            return false; // No tokens found for the given email
+            return false; 
         }
         PasswordResetCode lastOne=listPasswordResetCode.get(listPasswordResetCode.size()-1);
 
@@ -291,7 +279,6 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void updatePassword(String email, String newPassword) {
-        logger.info("Updating password for email: {}", email);
         Optional<User> userDb=userRepository.findByEmail(email);
         if(userDb.isPresent()){
             userDb.get().setPassword(passwordEncoder.encode(newPassword));
@@ -307,7 +294,6 @@ public class UserServiceImpl implements UserService {
     }
     
     public boolean deleteFavorite(User user,Long AddId){
-        logger.info("Deleting favorite ad with ID {} for user {}", AddId, user.getEmail());
         boolean adExists = user.getFavoriteAdds().stream()
                              .anyMatch(add -> add == AddId);
         if(adExists){
@@ -321,7 +307,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean emailValidation(String email, String code) {
-        logger.info("Starting email validation for email: {}", email);
         if (!validateRegisterCode(email, code)) {
             logger.warn("Validation failed for email: {} with code: {}", email, code);
             return false;
@@ -332,7 +317,6 @@ public class UserServiceImpl implements UserService {
 
         if (user.isPresent()) {
             User foundUser = user.get();
-            logger.info("User found for email: {}. Updating email validation status...", email);
             foundUser.setEmailValidation(true);
             userRepository.save(foundUser);
             logger.info("Email validation status for user {} successfully updated to {}",foundUser.getEmail(), foundUser.getIsAllowedNotification());
@@ -349,7 +333,6 @@ public class UserServiceImpl implements UserService {
             registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
             registerCode.setCode(generateCode.generateVerificationCode());
             registerCodeRepository.save(registerCode);
-            logger.info("Verification code generated and saved for email: {}", email);
             notificationServiceImpl.sendRegisterCode(registerCode.getEmail(), registerCode.getCode(),language);
             logger.info("Verification code email sent to: {}", email);
             return true;
@@ -360,7 +343,6 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean validateRegisterCode(String email, String code) {
-        logger.info("Validating register code for email: {}", email);
         List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmail(email);
         if (listRegisterCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
@@ -377,15 +359,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean addNewDevice(String username, String deviceToken) {
-        logger.info("Starting to add new device for username: {}", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     logger.error("User not found with username: {}", username);
                     return new IllegalArgumentException("User not found with username: " + username);
                 });
-
-        logger.info("User found: {} (ID: {})", user.getUsername(), user.getId());
 
         boolean tokenExists = userDeviceRepository.existsByUserIdAndDeviceToken(user.getId(), deviceToken);
         if (tokenExists) {
@@ -403,15 +382,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean deleteDevice(String username, String deviceToken) {
-        logger.info("Starting to delete device token for username: {}", username);
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
                     logger.error("User not found with username: {}", username);
                     return new IllegalArgumentException("User not found with username: " + username);
                 });
-
-        logger.info("User found: {} (ID: {})", user.getUsername(), user.getId());
 
         UserDevice userDevice = userDeviceRepository.findByUserIdAndDeviceToken(user.getId(), deviceToken)
                 .orElseThrow(() -> {
@@ -422,7 +398,7 @@ public class UserServiceImpl implements UserService {
         userDeviceRepository.delete(userDevice);
         logger.info("Device token successfully deleted for user: {} (Token: {})", username, deviceToken);
 
-        return true; // Cihaz token başarıyla silindi
+        return true;
     }
 
     public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language) {

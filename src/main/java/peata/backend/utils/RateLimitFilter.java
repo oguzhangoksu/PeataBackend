@@ -1,11 +1,14 @@
 package peata.backend.utils;
 
 import java.io.IOException;
-
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
-
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +26,18 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 import peata.backend.service.concretes.BannedIpService;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 
 @Component
 public class RateLimitFilter implements Filter {
+
+    private static final long LOG_INTERVAL_MILLIS = Duration.ofMinutes(10).toMillis();
+    private final Cache<String, Long> lastLogTimes = CacheBuilder.newBuilder()
+    .expireAfterWrite(12, TimeUnit.HOURS)  
+    .maximumSize(100_000)                   
+    .build();
 
     private static final Logger logger = LoggerFactory.getLogger(RateLimitFilter.class);
 
@@ -39,7 +51,9 @@ public class RateLimitFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String ipAddress = getClientIP(httpRequest);
-        logger.info("Request IP: {}", ipAddress);
+        if (shouldLogIp(ipAddress)) {
+            logger.info("Request IP: {}", ipAddress);
+        }
 
         if (bannedIpService.isBanned(ipAddress)) {
             HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -56,7 +70,7 @@ public class RateLimitFilter implements Filter {
             HttpServletResponse httpResponse = (HttpServletResponse) response;
             httpResponse.setStatus(429);
             httpResponse.getWriter().write("Rate limit exceeded. Try again later.");
-            logger.info("Rate limit exceeded for IP:", ipAddress);
+            System.out.println("Rate limit exceeded for IP: " + ipAddress);
         }
     }
 
@@ -71,5 +85,15 @@ public class RateLimitFilter implements Filter {
             return request.getRemoteAddr();
         }
         return xForwardedForHeader.split(",")[0];
+    }
+    private boolean shouldLogIp(String ip) {
+        long now = System.currentTimeMillis();
+        Long lastLogTime = lastLogTimes.getIfPresent(ip);
+    
+        if (lastLogTime == null || (now - lastLogTime) >= LOG_INTERVAL_MILLIS) {
+            lastLogTimes.put(ip, now); 
+            return true;
+        }
+        return false;
     }
 }
