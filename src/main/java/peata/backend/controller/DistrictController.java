@@ -15,7 +15,7 @@ import peata.backend.service.abstracts.DistrictService;
 
 
 @RestController
-@RequestMapping("/district")
+@RequestMapping("api/district")
 public class DistrictController {
     @Autowired
     private DistrictService districtService;

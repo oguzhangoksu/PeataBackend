@@ -143,7 +143,7 @@ public class UserServiceImpl implements UserService {
         if(user.getFavoriteAdds()==null){
             user.setFavoriteAdds(new ArrayList<>());
         }
-        AddDto add = addService.findAddById(AddId);
+        AddDto add = addService.findAddDtoById(AddId);
 
         if (add == null) {
             logger.warn("Ad with ID {} not found", AddId);
@@ -162,9 +162,14 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id){
         User user =userRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("User with ID " + id + " not found"));
-        userRepository.delete(user);
+        user.setActive(false);
+        User userDb = userRepository.save(user);
+        if(userDb == null) {
+            throw new EntityNotFoundException("User with ID " + id + " not found");
+        }
         logger.info("User with ID {} deleted successfully", id);
     }
+
     public List<User> allUsers(){
         List<User> usersDb= userRepository.findAll();
         logger.info("Fetched {} users", usersDb.size());
@@ -183,6 +188,13 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(()-> new EntityNotFoundException("User with Username " + username + " not found"));
         return user.getAds();
     }
+
+    public boolean isOwenedAdd(String username,Long id){
+        Set<Add> adds = this.findUsersAddsById(username);
+        boolean isOwned = adds.stream().anyMatch(add -> add.getId().equals(id));
+        return isOwned;
+    }
+
     public Long findUserIdByUsername(String username) {
         logger.info("Finding user ID for username {}", username);
         return userRepository.findUserIdByUsername(username)

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
-@RequestMapping("/token")
+@RequestMapping("api/token")
 public class TokenController {
 
     @GetMapping("/validate")

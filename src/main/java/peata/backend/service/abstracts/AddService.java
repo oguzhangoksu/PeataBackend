@@ -19,7 +19,8 @@ public interface AddService {
     
     public void delete(Long id);
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException;
-    public AddDto findAddById(Long id);
+    public AddDto findAddDtoById(Long id);
+    public Add findAddById(Long id);
     public Add findAddByIdWithOutDto(Long id);
     public List<Add> allAdds();
     public List<String> findImagesByAddId(Long id);
@@ -33,5 +34,6 @@ public interface AddService {
     public AddDto findAddByPcode(String pCode);
     public List<AddDto> findAddsbyCountryId(int countryId);
     public Page<AddDto> getPaginatedAddswithCountryId(int countryId,int page, int size);
+
 
 }

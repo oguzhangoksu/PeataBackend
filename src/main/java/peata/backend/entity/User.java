@@ -2,8 +2,11 @@ package peata.backend.entity;
 
 import java.util.Set;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -80,6 +83,17 @@ public class User {
     @Column(name="favoriteAdds")
     private List<Long> favoriteAdds= new ArrayList<>();
 
+    @Column(name="is_active")
+    private boolean isActive = true;
+
+    @Column(name="created_date")
+    @CreationTimestamp
+    private Timestamp currentDate;
+
+    @Column(name="deactivated_at", nullable = true)
+    @CreationTimestamp
+    private Timestamp deactivatedAt;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,orphanRemoval = true)
     private Set<Add> ads = new HashSet<>();
@@ -90,9 +104,14 @@ public class User {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", favoriteAddsCount=" + (favoriteAdds != null ? favoriteAdds.size() : 0) + // Avoids direct collection reference
+                ", favoriteAddsCount=" + (favoriteAdds != null ? favoriteAdds.size() : 0) + 
                 '}';
     }
+
+    @OneToMany(mappedBy = "user")
+    private List<ActivityLog> activityLogs;
+
+    
     @PrePersist
     public void prePersist() {
         if (language == null) {

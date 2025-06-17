@@ -36,3 +36,4 @@ logs/
 src/main/resources/static/adminpanel/
 src/main/resources/firebaseJson/
 git-auto-commit.sh
+testlogs/

@@ -11,17 +11,22 @@ import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
+import peata.backend.dtos.ActivityLogDto;
 import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.S3Service;
 import peata.backend.service.abstracts.UserService;
+import peata.backend.service.concretes.ActivityLogServiceImpl;
 import peata.backend.utils.FileData;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.UserPrincipal;
-
+import peata.backend.utils.Enums.ActivityType;
+import peata.backend.utils.Requests.AddComplaint;
 import peata.backend.utils.Requests.AddRequest;
 import peata.backend.utils.Requests.DeleteImageRequest;
+import peata.backend.utils.Requests.DeleteReason;
 import peata.backend.utils.Requests.UpdateAddInfoRequest;
 import peata.backend.utils.Responses.AddResponse;
 
@@ -40,12 +45,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Iterator;
 
 
 
 @RestController
-@RequestMapping("/add")
+@RequestMapping("api/add")
 public class AddController {
 
     private static final Logger logger = LoggerFactory.getLogger(AddController.class);
@@ -58,6 +64,9 @@ public class AddController {
     @Lazy
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ActivityLogServiceImpl activityLogServiceImpl;
 
     @Operation(summary = "Secured API ", 
     description = "This endpoint requires authentication. Data Json'nın stringe dönüştürülmüş hali "+
@@ -124,7 +133,7 @@ public class AddController {
     @GetMapping("/findAddById")
     public ResponseEntity<AddDto> findAddById(@RequestParam Long id) {
         
-        AddDto addDto=addService.findAddById(id);
+        AddDto addDto=addService.findAddDtoById(id);
         logger.info("Successfully retrieved ad: {}", addDto.getId());
         return ResponseEntity.ok(addDto);
     }
@@ -175,7 +184,6 @@ public class AddController {
             logger.warn("User not found: {}", username);
             return ResponseEntity.badRequest().body("User not found");
         }
-
         
         boolean addDeleted = false;
         Iterator<Add> iterator = userDb.getAds().iterator();
@@ -233,7 +241,7 @@ public class AddController {
         List<AddDto> addsList = new ArrayList<>();
         for (Long id : idsList) {
             try {
-                AddDto addDb = addService.findAddById(id);
+                AddDto addDb = addService.findAddDtoById(id);
                 addsList.add(addDb);
             } catch (EntityNotFoundException e) {
                 logger.warn("Add not found for ID: {}", id);
@@ -349,7 +357,7 @@ public class AddController {
     @PostMapping("/update/deleteImages")
     public ResponseEntity<String> deleteImages(@RequestBody DeleteImageRequest deleteImageRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
-        AddDto addDto=addService.findAddById(deleteImageRequest.getAddId());
+        AddDto addDto=addService.findAddDtoById(deleteImageRequest.getAddId());
         if(addDto.getUser_id() == user.getId()){
 
             addService.deleteImage(addDto, deleteImageRequest.getImages());
@@ -368,7 +376,7 @@ public class AddController {
     @PostMapping("/update/addImages")
     public ResponseEntity<String> addImages(@RequestParam("images") List<MultipartFile> files,@RequestParam("addId") Long addId,@AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
-        AddDto addDto=addService.findAddById(addId);
+        AddDto addDto=addService.findAddDtoById(addId);
         if(addDto.getUser_id() == user.getId()){
             logger.info("User {} is adding {} images to adId {}", user.getUsername(), files.size(), addId);
             addService.addImage(addDto, files);
@@ -395,6 +403,49 @@ public class AddController {
         else{
             logger.warn("Unauthorized update attempt: User {} tried to update ad info for an ad not owned by them.", user.getUsername());
             return ResponseEntity.badRequest().body("This add is not your own. You can't update add.");
+        }
+        
+    }
+
+        @Operation(summary = "Secured API ", 
+    description = "\n" + //
+                "This API endpoint allows an authenticated user to delete an advertisement with a specified reason if they are the owner of that advertisement.",
+    security = @SecurityRequirement(name = "bearerAuth"))   
+    @PostMapping("/delete/reason")
+    public ResponseEntity<String> deleteReason(@AuthenticationPrincipal UserPrincipal userPrincipal,DeleteReason deleteReason)  {
+        Boolean isOwned =  userService.isOwenedAdd(userPrincipal.getUsername(),deleteReason.getAddId());
+        if(isOwned){
+            addService.delete(deleteReason.getAddId());
+            logger.info("User {} successfully deleted ad with ID: {}", userPrincipal.getUsername(), deleteReason.getAddId());
+            return ResponseEntity.ok("Add deleted successfully. Reason: " + deleteReason.getDescription());
+        }
+        else{
+            logger.warn("Unauthorized delete attempt: User {} tried to delete ad with ID: {} which is not owned by them.", userPrincipal.getUsername(), deleteReason.getAddId());
+            return ResponseEntity.badRequest().body("This add is not your own. You can't delete add.");
+        }
+        
+    }
+
+    @Operation(summary = "Secured API ", 
+    description = "\n" + //
+                "This API endpoint allows an authenticated user to delete an advertisement with a specified reason if they are the owner of that advertisement.",
+    security = @SecurityRequirement(name = "bearerAuth"))   
+    @PostMapping("/complaint")
+    public ResponseEntity<Map<String, Object>> complaint(@AuthenticationPrincipal UserPrincipal userPrincipal,AddComplaint addComplaint)  {
+        Add add =  addService.findAddById(addComplaint.getAddId());
+        ActivityLogDto activityLogDto = new ActivityLogDto();
+        activityLogDto.setContent(addComplaint.getDescription());
+        activityLogDto.setActivityType(ActivityType.COMPLAINT);
+        User user =userService.findUserByUsername(userPrincipal.getUsername());
+        
+        if(add != null && add.getUser().getUsername().equals(userPrincipal.getUsername())){
+            activityLogServiceImpl.saveActivityLog(activityLogDto,user,add);
+            logger.info("User {} successfully filed a complaint for ad with ID: {}", userPrincipal.getUsername(), addComplaint.getAddId());
+            return ResponseUtil.success("Complaint filed successfully for ad ID: " + addComplaint.getAddId());
+        }
+        else{
+            logger.warn("Unauthorized delete attempt: User {} tried to delete ad with ID: {} which is not owned by them.", userPrincipal.getUsername(), addComplaint.getAddId());
+            return ResponseUtil.error("This ad does not belong to you. You cannot file a complaint.");
         }
         
     }

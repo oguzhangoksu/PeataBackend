@@ -14,7 +14,7 @@ import peata.backend.entity.Country;
 import peata.backend.service.abstracts.CountryService;
 
 @RestController
-@RequestMapping("/country")
+@RequestMapping("api/country")
 public class CountryController {
     
     @Autowired

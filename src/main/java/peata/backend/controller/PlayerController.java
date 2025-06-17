@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
-@RequestMapping("/game")
+@RequestMapping("api/game")
 public class PlayerController {
     
     @Autowired

@@ -48,6 +48,8 @@ public class AddServiceImpl implements AddService{
     @Autowired
     private RandomStringGenerator randomStringGenerator;
 
+   
+
 
     public Add save(AddRequest addRequest,List<FileData> fileDatas) throws IOException{
         logger.info("Saving new ad for user with ID: {}", addRequest.getUser_id());
@@ -101,17 +103,45 @@ public class AddServiceImpl implements AddService{
     public void delete(Long id){
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
-        s3Service.deleteFolder(""+add.getId()+"/");
-        addRepository.delete(add);;
+        // s3Service.deleteFolder(""+add.getId()+"/");
+        deleteById(add);
         logger.info("Ad with ID: {} has been deleted", id);
     }
+
+    public void deleteById(Add add) {
+        logger.info("Deleting ad with ID: {}", add.getId());
+        add.setActive(false);
+        Add dbAdd = addRepository.save(add);
+        if (dbAdd == null) {
+            throw new EntityNotFoundException("Add with ID " + add.getId() + " not found");
+        }
+    }
+
+    public boolean insertAddComplaint(Long addId, String complaint) {
+        logger.info("Inserting complaint for ad ID: {}", addId);
+        Add add = addRepository.findById(addId)
+            .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addId + " not found"));
+        if(add != null) {
+
+        }
+     
+        return true;
+    }
     
-    public AddDto findAddById(Long id){
+    public AddDto findAddDtoById(Long id){
         logger.info("Fetching ad with ID: {}", id);
         Add add =addRepository.findById(id)
             .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
         return convertToDto(add);
     }
+
+    public Add findAddById(Long id){
+        logger.info("Fetching ad with ID: {}", id);
+        Add add =addRepository.findById(id)
+            .orElseThrow(()-> new EntityNotFoundException("Add with ID " + id + " not found"));
+        return add;
+    }
+    
     
     public AddDto findAddByPcode(String pCode){
         logger.info("Fetching ad with Pcode: {}", pCode);

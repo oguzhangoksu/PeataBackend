@@ -16,18 +16,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import peata.backend.entity.Add;
 import peata.backend.entity.User;
+import peata.backend.service.abstracts.ActivityLogService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.UserPrincipal;
+import peata.backend.utils.Enums.ActivityType;
 import peata.backend.utils.Mapper.UserResponseMapper;
+import peata.backend.utils.Requests.AddComplaint;
 import peata.backend.utils.Requests.ChangePassword;
 import peata.backend.utils.Requests.EmailRequest;
 import peata.backend.utils.Requests.EmailValidationRequest;
 import peata.backend.utils.Requests.LoginRequest;
+import peata.backend.utils.Requests.UserDeleteReason;
 import peata.backend.utils.Requests.UserUpdateRequest;
 import peata.backend.utils.Responses.JwtResponse;
 import peata.backend.utils.Responses.LanguageRequest;
 import peata.backend.utils.Responses.UserResponse;
+import peata.backend.dtos.ActivityLogDto;
 import peata.backend.dtos.UserDto;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,10 +48,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("api/user")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -64,6 +71,9 @@ public class UserController {
 
     @Autowired
     private UserResponseMapper userResponseMapper;
+
+    @Autowired
+    private ActivityLogService activityLogService;
 
     @Operation(summary = "Public API", description = "Description: This endpoint allows new users to register by providing their details. It encrypts the password and saves the user in the database.")
     @PostMapping("/auth/register")
@@ -360,6 +370,35 @@ public class UserController {
         return ResponseEntity.ok("Cihaz başarıyla silindi.");
     }
 
+
+
+
+
+    @Operation(summary = "Secured API ", 
+    description = "\n" + //
+                "This API endpoint allows authenticated users to submit a reason for their account deletion. ", //
+    security = @SecurityRequirement(name = "bearerAuth"))   
+    @PostMapping("/delete/reason")
+    public ResponseEntity<Map<String, Object>> reason(@AuthenticationPrincipal UserPrincipal userPrincipal,UserDeleteReason userDeleteReason)  {
+        User user =userService.findUserByUsername(userPrincipal.getUsername());
+        ActivityLogDto activityLogDto = new ActivityLogDto();
+        activityLogDto.setContent(userDeleteReason.getDescription());
+        activityLogDto.setActivityType(ActivityType.DELETE_USER);
+        
+        if(user != null && user.getUsername().equals(userPrincipal.getUsername())){
+            activityLogService.saveActivityLog(activityLogDto,null,null);
+            logger.info("User {} has requested account deletion with reason: {}", userPrincipal.getUsername(), userDeleteReason.getDescription());
+            return ResponseUtil.success("Your request for account deletion has been received. We will process it shortly.");
+        }
+        else{
+            logger.warn("User {} attempted to delete another user's account.", userPrincipal.getUsername());
+            return ResponseUtil.error("You are not authorized to delete this user.");
+        }
+        
+    }
+
+
+
     private String handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         if (e.getMessage().contains("Key (username)")) {
             logger.error("Error creating user: Username already exists.", e.getMessage());
@@ -371,5 +410,7 @@ public class UserController {
         logger.error("Data integrity violation occurred.", e.getMessage());
         return "A data integrity error occurred.";
     }
+
+
 
 }

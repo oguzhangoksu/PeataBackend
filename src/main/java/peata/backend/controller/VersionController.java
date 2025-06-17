@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import peata.backend.service.abstracts.VersionService;
 
 @RestController
-@RequestMapping("/version")
+@RequestMapping("api/version")
 public class VersionController {
 
     @Autowired

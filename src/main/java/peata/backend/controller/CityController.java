@@ -14,7 +14,7 @@ import peata.backend.entity.City;
 import peata.backend.service.abstracts.CityService;
 
 @RestController
-@RequestMapping("/city")
+@RequestMapping("api/city")
 
 public class CityController {
     @Autowired

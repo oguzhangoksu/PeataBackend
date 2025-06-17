@@ -2,6 +2,9 @@ package peata.backend.entity;
 
 import java.util.Date;
 import java.util.List;
+import java.sql.Timestamp;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -12,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -82,6 +86,20 @@ public class Add {
     
     @Column(name="country_id", nullable = false)
     private int countryId = 1;
+
+    @Column(name="is_active")
+    private boolean isActive = true;
+
+    @Column(name="created_date")
+    @CreationTimestamp
+    private Timestamp currentDate;
+
+    @Column(name="deactivated_at", nullable = true)
+    @CreationTimestamp
+    private Timestamp deactivatedAt;
+
+@    OneToMany(mappedBy = "add")
+    private List<ActivityLog> activityLogs;
 
     @JsonBackReference
     @ManyToOne

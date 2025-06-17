@@ -39,4 +39,6 @@ public interface UserService {
     public boolean deleteDevice(String username, String deviceToken);
     public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language);
     public boolean changeLanguage(String username, String language);
+    public boolean isOwenedAdd(String username,Long id);
+
 } 

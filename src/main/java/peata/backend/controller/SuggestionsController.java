@@ -17,7 +17,7 @@ import peata.backend.service.concretes.UserServiceImpl;
 import peata.backend.utils.Requests.SuggestionRequest;
 
 @RestController
-@RequestMapping("/suggestions")
+@RequestMapping("api/suggestions")
 public class SuggestionsController {
     
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);

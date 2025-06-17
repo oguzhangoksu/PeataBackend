@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController()
-@RequestMapping("/panel")
+@RequestMapping("api/panel")
 public class AdminPanelController {
 
     @Autowired
