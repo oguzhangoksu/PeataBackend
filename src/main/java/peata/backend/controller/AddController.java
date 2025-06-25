@@ -97,33 +97,27 @@ public class AddController {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
             addRequest.setUser_id(userDb.getId());
             List<FileData> fileDatas= new ArrayList<FileData>();
-           
             for (MultipartFile file : files) {
                 try {
                     FileData fileData = new FileData();
-                    // Get the filename
                     fileData.setFileName(file.getOriginalFilename());
                     fileData.setFileData(file.getBytes());
                     fileDatas.add(fileData);
-        
                 } catch (IOException e) {
                     logger.error("File upload failed for file: {}", file.getOriginalFilename(), e);
-                    return ResponseEntity.status(500).body("File upload failed."+file.getOriginalFilename()+" is not uploaded");
+                    return ResponseUtil.error("File upload failed."+file.getOriginalFilename()+" is not uploaded");
                 }
             }
             Add addDb =addService.save(addRequest,fileDatas);
             logger.info("Ad saved successfully with ID: {} , {}", addDb.getId(),username);
-            return ResponseEntity.ok(new AddResponse("Add saved:",addDb.getId(),addDb.getImages()));
-            
-            
+            return ResponseUtil.success("Add saved", new AddResponse("Add saved:",addDb.getId(),addDb.getImages()));
         } catch (JsonProcessingException e) {
             logger.error("Invalid JSON data received: {}", jsonData, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
+            return ResponseUtil.error("Invalid JSON data");
         } catch (IOException e) {
             logger.error("File upload failed.", e);
-            return ResponseEntity.status(500).body("File upload failed.");
+            return ResponseUtil.error("File upload failed.");
         }
-        
     }
 
     @Operation(summary = "Secured API ", 
@@ -131,11 +125,10 @@ public class AddController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/findAddById")
-    public ResponseEntity<AddDto> findAddById(@RequestParam Long id) {
-        
+    public ResponseEntity<?> findAddById(@RequestParam Long id) {
         AddDto addDto=addService.findAddDtoById(id);
         logger.info("Successfully retrieved ad: {}", addDto.getId());
-        return ResponseEntity.ok(addDto);
+        return ResponseUtil.success("Ad retrieved", addDto);
     }
     
     @Operation(summary = "Secured API ", 
@@ -143,10 +136,10 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/findImagesByAddId")
-    public ResponseEntity<List<String>> findImagesByAddId(@RequestParam Long id) {
+    public ResponseEntity<?> findImagesByAddId(@RequestParam Long id) {
         List<String> images=addService.findImagesByAddId(id);
         logger.info("Successfully retrieved images for ad ID {}: {}", id, images);
-        return ResponseEntity.ok(images);
+        return ResponseUtil.success("Images retrieved", images);
     }
 
     @Operation(summary = "Public API ", 
@@ -154,10 +147,10 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/getPaginatedAdds")
-    public ResponseEntity<Page<AddDto>> getPaginatedAdds(@RequestParam int page,@RequestParam int size) {
+    public ResponseEntity<?> getPaginatedAdds(@RequestParam int page,@RequestParam int size) {
         Page<AddDto> addDtos=addService.getPaginatedAdds(page,size);
         logger.info("Successfully retrieved {} adds for page {} with size {}", addDtos.getTotalElements(), page, size);
-        return ResponseEntity.ok(addDtos);
+        return ResponseUtil.success("Paginated adds retrieved", addDtos);
     }
 
     @Operation(summary = "Public API ", 
@@ -165,10 +158,10 @@ public class AddController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/getPaginatedAddsByCountryId")
-    public ResponseEntity<Page<AddDto>> getPaginatedAddswithCountryId(@RequestParam int countryId,@RequestParam int page,@RequestParam int size) {
+    public ResponseEntity<?> getPaginatedAddswithCountryId(@RequestParam int countryId,@RequestParam int page,@RequestParam int size) {
         Page<AddDto> addDtos = addService.getPaginatedAddswithCountryId(countryId, page, size);
         logger.info("Received request for paginated adds with countryId: {}, page: {}, size: {}", countryId, page, size);
-        return ResponseEntity.ok(addDtos);
+        return ResponseUtil.success("Paginated adds by countryId retrieved", addDtos);
     }
 
 
@@ -177,39 +170,36 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/delete")
-    public ResponseEntity<String> delete(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<?> delete(@RequestParam Long id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         String username = userPrincipal.getUsername();
         User userDb=userService.findUserByUsername(username);
         if (userDb == null) {
             logger.warn("User not found: {}", username);
-            return ResponseEntity.badRequest().body("User not found");
+            return ResponseUtil.error("User not found");
         }
-        
         boolean addDeleted = false;
         Iterator<Add> iterator = userDb.getAds().iterator();
         while (iterator.hasNext()) {
             Add add = iterator.next();
             if (add.getId() != null && add.getId().equals(id)) {
-
                 iterator.remove();
-                
                 boolean adExists = addService.existsById(id); 
                 if (adExists) {
                     addService.delete(id);
                     addDeleted = true;
                 } else {
                     logger.warn("Ad does not exist in the database with ID: {}", id);
-                    return ResponseEntity.badRequest().body("Ad does not exist in the database");
+                    return ResponseUtil.error("Ad does not exist in the database");
                 }
                 break; 
             }
         }
         if (!addDeleted) {
             logger.warn("Ad ID {} not found in user's ads list for user: {}", id, username);
-            return ResponseEntity.badRequest().body("Ad ID not found in user's ads list");
+            return ResponseUtil.error("Ad ID not found in user's ads list");
         }
         logger.info("Ad deleted successfully with ID: {} by {}", id , username);
-        return ResponseEntity.ok("Ad deleted");
+        return ResponseUtil.success("Ad deleted");
     }
     
     @Operation(
@@ -220,15 +210,12 @@ public class AddController {
     @GetMapping("/findAddByPcode")
     public ResponseEntity<?> findAddByPcode(@RequestParam String pCode) {
         AddDto addDto = addService.findAddByPcode(pCode);
-    
         if (addDto == null) {
             logger.warn("No ad found for PCode: {}", pCode);
-            return ResponseEntity.badRequest().body("No ad found for PCode: " + pCode);
+            return ResponseUtil.error("No ad found for PCode: " + pCode);
         }
-        
         logger.info("Successfully retrieved ad with PCode: {}", pCode);
-        
-        return ResponseEntity.ok(addDto);
+        return ResponseUtil.success("Ad retrieved by PCode", addDto);
     }
 
     
@@ -237,7 +224,7 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @PostMapping("/getAddsWithIds")
-        public ResponseEntity<List<AddDto>> getAddsWithIds(@RequestParam List<Long> idsList) {
+    public ResponseEntity<?> getAddsWithIds(@RequestParam List<Long> idsList) {
         List<AddDto> addsList = new ArrayList<>();
         for (Long id : idsList) {
             try {
@@ -251,7 +238,7 @@ public class AddController {
             }
         }
         logger.info("Returning list of Favorite Adds: ");
-        return ResponseEntity.ok(addsList);
+        return ResponseUtil.success("Favorite adds retrieved", addsList);
     }
 
 
@@ -260,10 +247,10 @@ public class AddController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/status")
-    public ResponseEntity<Page<AddDto>> getPaginatedAddswithStatus(@RequestParam int status,@RequestParam int page,@RequestParam int size) {
+    public ResponseEntity<?> getPaginatedAddswithStatus(@RequestParam int status,@RequestParam int page,@RequestParam int size) {
         Page<AddDto> addDtos = addService.getPaginatedAddswithStatus(status, page, size);
         logger.info("Returning paginated adds with status: {} , page:{}, size: {}", status, page, size);
-        return ResponseEntity.ok(addDtos);
+        return ResponseUtil.success("Paginated adds by status retrieved", addDtos);
     }
     
     @Operation(summary = "Secured API ", 
@@ -305,7 +292,7 @@ public class AddController {
                 addDb.setStatus(addRequest.getStatus());
                 addDb.setPhone(addRequest.getPhone());
                 addDb.setEmail(addRequest.getEmail());
-                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
+                return ResponseUtil.success("Add updated", addService.save(addDb,addDb.getUser()));
             }
             else{
                 for (MultipartFile file : files) {
@@ -315,10 +302,9 @@ public class AddController {
                         fileData.setFileData(file.getBytes());
                         fileDatas.add(fileData);
                         logger.info("File uploaded: {}", file.getOriginalFilename());
-                        
                     } catch (IOException e) {
                         logger.error("File upload failed: {}. Error: {}", file.getOriginalFilename(), e.getMessage());
-                        return ResponseEntity.status(500).body("File upload failed."+file.getOriginalFilename()+" is not uploaded");
+                        return ResponseUtil.error("File upload failed."+file.getOriginalFilename()+" is not uploaded");
                     }
                 }
                 Add addDb=addService.findAddByIdWithOutDto(addRequest.getId());
@@ -335,38 +321,32 @@ public class AddController {
                 addDb.setPhone(addRequest.getPhone());
                 addDb.setEmail(addRequest.getEmail());
                 logger.info("Updated add with ID: {} and uploaded new images.", addRequest.getId());
-                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
+                return ResponseUtil.success("Add updated", addService.save(addDb,addDb.getUser()));
             }
-            
-
         } catch (JsonProcessingException e) {
             logger.error("Invalid JSON data. Error: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
+            return ResponseUtil.error("Invalid JSON data");
         } catch (IOException e) {
             logger.error("File upload failed. Error: {}", e.getMessage());
-            return ResponseEntity.status(500).body("File upload failed.");
+            return ResponseUtil.error("File upload failed.");
         }
-        
     }
 
-    
     @Operation(summary = "Secured API ", 
         description = "This API endpoint deletes specified images from an advertisement if the authenticated user is the owner of the advertisement.",
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @PostMapping("/update/deleteImages")
-    public ResponseEntity<String> deleteImages(@RequestBody DeleteImageRequest deleteImageRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<?> deleteImages(@RequestBody DeleteImageRequest deleteImageRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
         AddDto addDto=addService.findAddDtoById(deleteImageRequest.getAddId());
         if(addDto.getUser_id() == user.getId()){
-
             addService.deleteImage(addDto, deleteImageRequest.getImages());
-            return ResponseEntity.ok("Images deleted successfully. for addId: "+deleteImageRequest.getAddId());
+            return ResponseUtil.success("Images deleted successfully. for addId: "+deleteImageRequest.getAddId());
         }
         else{
-            return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
-        } 
-        
+            return ResponseUtil.error("This add is not your own. You can't delete images.");
+        }
     }
 
     @Operation(summary = "Secured API ", 
@@ -374,37 +354,36 @@ public class AddController {
                 "This API endpoint allows an authenticated user to add specified images, provided as a List<MultipartFile>, to an advertisement if they are the owner of the advertisement",
     security = @SecurityRequirement(name = "bearerAuth"))   
     @PostMapping("/update/addImages")
-    public ResponseEntity<String> addImages(@RequestParam("images") List<MultipartFile> files,@RequestParam("addId") Long addId,@AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
+    public ResponseEntity<?> addImages(@RequestParam("images") List<MultipartFile> files,@RequestParam("addId") Long addId,@AuthenticationPrincipal UserPrincipal userPrincipal) throws IOException {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
         AddDto addDto=addService.findAddDtoById(addId);
         if(addDto.getUser_id() == user.getId()){
             logger.info("User {} is adding {} images to adId {}", user.getUsername(), files.size(), addId);
             addService.addImage(addDto, files);
-            return ResponseEntity.ok("Images deleted successfully.");
+            return ResponseUtil.success("Images added successfully.");
         }
         else{
             logger.info("Unauthorized attempt: User {} trying to add images for adId {} which is not owned by them.", user.getUsername(), addId);
-            return ResponseEntity.badRequest().body("This add is not your own. You can't delete images.");
+            return ResponseUtil.error("This add is not your own. You can't add images.");
         }
-        
     }
+
     @Operation(summary = "Secured API ", 
     description = "\n" + //
                 "This API endpoint allows an authenticated user to update the information of an advertisement if they are the owner of that advertisement.",
     security = @SecurityRequirement(name = "bearerAuth"))   
     @PostMapping("/update/Info")
-    public ResponseEntity<String> addInfo(UpdateAddInfoRequest addInfoRequest,@AuthenticationPrincipal UserPrincipal userPrincipal)  {
+    public ResponseEntity<?> addInfo(UpdateAddInfoRequest addInfoRequest,@AuthenticationPrincipal UserPrincipal userPrincipal)  {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
         if(addInfoRequest.getUser_id() == user.getId()){
             addService.updateAddDto(addInfoRequest);
             logger.info("User {} successfully updated ad info for ad id: {}", user.getUsername(), addInfoRequest.getId());
-            return ResponseEntity.ok("Add Info updated successfully.");
+            return ResponseUtil.success("Add Info updated successfully.");
         }
         else{
             logger.warn("Unauthorized update attempt: User {} tried to update ad info for an ad not owned by them.", user.getUsername());
-            return ResponseEntity.badRequest().body("This add is not your own. You can't update add.");
+            return ResponseUtil.error("This add is not your own. You can't update add.");
         }
-        
     }
 
         @Operation(summary = "Secured API ", 
@@ -412,18 +391,17 @@ public class AddController {
                 "This API endpoint allows an authenticated user to delete an advertisement with a specified reason if they are the owner of that advertisement.",
     security = @SecurityRequirement(name = "bearerAuth"))   
     @PostMapping("/delete/reason")
-    public ResponseEntity<String> deleteReason(@AuthenticationPrincipal UserPrincipal userPrincipal,DeleteReason deleteReason)  {
+    public ResponseEntity<?> deleteReason(@AuthenticationPrincipal UserPrincipal userPrincipal,DeleteReason deleteReason)  {
         Boolean isOwned =  userService.isOwenedAdd(userPrincipal.getUsername(),deleteReason.getAddId());
         if(isOwned){
             addService.delete(deleteReason.getAddId());
             logger.info("User {} successfully deleted ad with ID: {}", userPrincipal.getUsername(), deleteReason.getAddId());
-            return ResponseEntity.ok("Add deleted successfully. Reason: " + deleteReason.getDescription());
+            return ResponseUtil.success("Add deleted successfully. Reason: " + deleteReason.getDescription());
         }
         else{
             logger.warn("Unauthorized delete attempt: User {} tried to delete ad with ID: {} which is not owned by them.", userPrincipal.getUsername(), deleteReason.getAddId());
-            return ResponseEntity.badRequest().body("This add is not your own. You can't delete add.");
+            return ResponseUtil.error("This add is not your own. You can't delete add.");
         }
-        
     }
 
     @Operation(summary = "Secured API ", 
@@ -431,13 +409,12 @@ public class AddController {
                 "This API endpoint allows an authenticated user to delete an advertisement with a specified reason if they are the owner of that advertisement.",
     security = @SecurityRequirement(name = "bearerAuth"))   
     @PostMapping("/complaint")
-    public ResponseEntity<Map<String, Object>> complaint(@AuthenticationPrincipal UserPrincipal userPrincipal,AddComplaint addComplaint)  {
+    public ResponseEntity<?> complaint(@AuthenticationPrincipal UserPrincipal userPrincipal,AddComplaint addComplaint)  {
         Add add =  addService.findAddById(addComplaint.getAddId());
         ActivityLogDto activityLogDto = new ActivityLogDto();
         activityLogDto.setContent(addComplaint.getDescription());
         activityLogDto.setActivityType(ActivityType.COMPLAINT);
         User user =userService.findUserByUsername(userPrincipal.getUsername());
-        
         if(add != null && add.getUser().getUsername().equals(userPrincipal.getUsername())){
             activityLogServiceImpl.saveActivityLog(activityLogDto,user,add);
             logger.info("User {} successfully filed a complaint for ad with ID: {}", userPrincipal.getUsername(), addComplaint.getAddId());
@@ -447,7 +424,6 @@ public class AddController {
             logger.warn("Unauthorized delete attempt: User {} tried to delete ad with ID: {} which is not owned by them.", userPrincipal.getUsername(), addComplaint.getAddId());
             return ResponseUtil.error("This ad does not belong to you. You cannot file a complaint.");
         }
-        
     }
   
     
