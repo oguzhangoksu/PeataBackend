@@ -73,6 +73,7 @@ public class NotificationServiceImpl {
     }
 
     public void subscribeUserToCityDistrict(String userEmail, String city, String district) {
+        
         String queueName = "queue-" + city + "-" + district; // Dynamic queue name
         String routingKey = city + "." + district; // Routing key for the topic exchange
 

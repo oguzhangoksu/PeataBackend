@@ -37,3 +37,6 @@ src/main/resources/static/adminpanel/
 src/main/resources/firebaseJson/
 git-auto-commit.sh
 testlogs/
+src/main/java/peata/backend/UserControllerOld
+product/
+test/

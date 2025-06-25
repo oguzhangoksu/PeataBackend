@@ -21,6 +21,7 @@ import peata.backend.dtos.AdminDto;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.JwtProvider;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Requests.LoginRequest;
 import peata.backend.utils.Responses.JwtResponse;
@@ -51,7 +52,6 @@ public class AdminController {
     )
     @PostMapping("/auth/register")
     public ResponseEntity<?> createUser(@RequestBody AdminDto adminDto ,@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        
         try{
             String username = userPrincipal.getUsername();
             if(userService.findUserByUsername(username).getRole().equals("ROLE_ADMIN")){
@@ -67,17 +67,15 @@ public class AdminController {
                 admin.setRole(adminDto.getRole());
                 admin.setIsAllowedNotification(adminDto.getIsAllowedNotification()); // map the field
                 User adminDb=userService.save(admin);
-                return ResponseEntity.ok(adminDb);
+                return ResponseUtil.success("Admin created successfully.", adminDb);
             }
             else{
-                return ResponseEntity.badRequest().body("You do not have permission to add a new admin.");
+                return ResponseUtil.error("You do not have permission to add a new admin.");
             }
         } catch (DataIntegrityViolationException e) {
-        // Custom error message for unique constraint violation
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username, email, or phone number already exists.");
+            return ResponseUtil.error("Username, email, or phone number already exists.");
         } catch (Exception e) {
-            // Handle other exceptions
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while creating the user.");
+            return ResponseUtil.error("An error occurred while creating the user.");
         }
 
     }
@@ -88,8 +86,8 @@ public class AdminController {
                security = @SecurityRequirement(name = "bearerAuth")
                ) 
     @GetMapping("/deneme")
-    public ResponseEntity<String> deneme() {
-        return ResponseEntity.ok("admin oldu.");
+    public ResponseEntity<?> deneme() {
+        return ResponseUtil.success("admin oldu.");
     }
     
 
@@ -100,18 +98,15 @@ public class AdminController {
     )
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        // Perform authentication logic
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getIdentifier(), 
                 loginRequest.getPassword()
             )
         );
-
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        // Generate JWT Token
         String jwt = jwtProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        return ResponseUtil.success("Login successful.", new JwtResponse(jwt));
     }
 
 

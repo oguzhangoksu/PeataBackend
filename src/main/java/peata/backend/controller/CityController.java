@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import peata.backend.entity.City;
 import peata.backend.service.abstracts.CityService;
+import peata.backend.utils.ResponseUtil;
 
 @RestController
 @RequestMapping("api/city")
@@ -23,24 +24,39 @@ public class CityController {
 
     @Operation(summary = "Public API", description = "") 
     @GetMapping("/getAll")
-    public ResponseEntity<List<City>> getAll() {
-        List<City> cities = cityService.getAll();
-        return ResponseEntity.ok(cities);
+    public ResponseEntity<?> getAll() {
+        try {
+            List<City> cities = cityService.getAll();
+            return ResponseUtil.success("Cities fetched successfully.", cities);
+        } catch (Exception e) {
+            return ResponseUtil.error("Cities could not be fetched.");
+        }
     }
 
 
     @Operation(summary = "Public API", description = "") 
     @GetMapping("/getById")
-    public ResponseEntity<City> getById(@RequestParam("id") Long id) {
-        City city = cityService.getById(id);
-        return ResponseEntity.ok(city);
+    public ResponseEntity<?> getById(@RequestParam("id") Long id) {
+        try {
+            City city = cityService.getById(id);
+            if (city == null) {
+                return ResponseUtil.error("City not found.");
+            }
+            return ResponseUtil.success("City fetched successfully.", city);
+        } catch (Exception e) {
+            return ResponseUtil.error("City could not be fetched.");
+        }
     }
 
     @Operation(summary = "Public API", description = "")
     @GetMapping("/getCitiesByCountryId")
-    public ResponseEntity<List<City>> getCitiesByCountryId(@RequestParam("countryId") Long countryId) {
-        List<City> cities = cityService.getCitiesByCountryId(countryId);
-        return ResponseEntity.ok(cities);
+    public ResponseEntity<?> getCitiesByCountryId(@RequestParam("countryId") Long countryId) {
+        try {
+            List<City> cities = cityService.getCitiesByCountryId(countryId);
+            return ResponseUtil.success("Cities by country fetched successfully.", cities);
+        } catch (Exception e) {
+            return ResponseUtil.error("Cities by country could not be fetched.");
+        }
     }
 
     

@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import peata.backend.dtos.PlayerDto;
 import peata.backend.entity.Player;
 import peata.backend.service.abstracts.PlayerService;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Responses.PlayerUpdateRequest;
 
@@ -34,13 +35,19 @@ public class PlayerController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/score")
-    public ResponseEntity<PlayerDto> score(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        Player player = playerService.getPlayerByUsername(userPrincipal.getUsername());
-        PlayerDto playerDtoResponse = new PlayerDto();
-        playerDtoResponse.setUsername(player.getUsername());
-        playerDtoResponse.setScore(player.getScore());
-
-        return ResponseEntity.ok(playerDtoResponse);
+    public ResponseEntity<?> score(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            Player player = playerService.getPlayerByUsername(userPrincipal.getUsername());
+            if (player == null) {
+                return ResponseUtil.error("Player not found.");
+            }
+            PlayerDto playerDtoResponse = new PlayerDto();
+            playerDtoResponse.setUsername(player.getUsername());
+            playerDtoResponse.setScore(player.getScore());
+            return ResponseUtil.success("Player score fetched successfully.", playerDtoResponse);
+        } catch (Exception e) {
+            return ResponseUtil.error("Player score could not be fetched.");
+        }
     }
 
     @Operation(summary = "Public API", 
@@ -48,9 +55,13 @@ public class PlayerController {
     security = @SecurityRequirement(name = "bearerAuth")
 ) 
     @GetMapping("/scoreBoard")
-    public ResponseEntity<List<PlayerDto>> scoreBoard() {
-        List<PlayerDto> players = playerService.getLeaderboard();
-        return ResponseEntity.ok(players);
+    public ResponseEntity<?> scoreBoard() {
+        try {
+            List<PlayerDto> players = playerService.getLeaderboard();
+            return ResponseUtil.success("Leaderboard fetched successfully.", players);
+        } catch (Exception e) {
+            return ResponseUtil.error("Leaderboard could not be fetched.");
+        }
     }
 
     @Operation(summary = "Secured API", 
@@ -58,14 +69,18 @@ public class PlayerController {
         security = @SecurityRequirement(name = "bearerAuth")
     )  
     @PostMapping("/updateScore")
-    public ResponseEntity<PlayerDto> updateScore(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody PlayerUpdateRequest playerUpdateRequest) {
-        PlayerDto playerDto = new PlayerDto();
-        playerDto.setUsername(userPrincipal.getUsername());
-        playerDto.setScore(playerUpdateRequest.getScore());
-        Player playerDb =playerService.updateScore(playerDto);
-        PlayerDto playerDtoResponse = new PlayerDto();
-        playerDtoResponse.setUsername(playerDb.getUsername());
-        playerDtoResponse.setScore(playerDb.getScore());
-        return ResponseEntity.ok(playerDtoResponse);
+    public ResponseEntity<?> updateScore(@AuthenticationPrincipal UserPrincipal userPrincipal, @RequestBody PlayerUpdateRequest playerUpdateRequest) {
+        try {
+            PlayerDto playerDto = new PlayerDto();
+            playerDto.setUsername(userPrincipal.getUsername());
+            playerDto.setScore(playerUpdateRequest.getScore());
+            Player playerDb = playerService.updateScore(playerDto);
+            PlayerDto playerDtoResponse = new PlayerDto();
+            playerDtoResponse.setUsername(playerDb.getUsername());
+            playerDtoResponse.setScore(playerDb.getScore());
+            return ResponseUtil.success("Player score updated successfully.", playerDtoResponse);
+        } catch (Exception e) {
+            return ResponseUtil.error("Player score could not be updated.");
+        }
     }
 }

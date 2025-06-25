@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import peata.backend.entity.Suggestions;
 import peata.backend.service.abstracts.SuggestionsService;
 import peata.backend.service.concretes.UserServiceImpl;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.Requests.SuggestionRequest;
 
 @RestController
@@ -26,16 +27,16 @@ public class SuggestionsController {
 
     @Operation(summary = "Public API", description = "Allows users to submit suggestions.", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/suggest")
-    public ResponseEntity<String> suggest(SuggestionRequest suggestionRequest) {
+    public ResponseEntity<?> suggest(SuggestionRequest suggestionRequest) {
         try {
             Suggestions suggestion = suggestionService.save(suggestionRequest);
             if (suggestion != null) {
-                return ResponseEntity.ok("Öneri başarıyla gönderildi.");
+                return ResponseUtil.success("Öneri başarıyla gönderildi.");
             } else {
-                return ResponseEntity.badRequest().body("Öneri gönderilemedi, lütfen tekrar deneyin.");
+                return ResponseUtil.error("Öneri gönderilemedi, lütfen tekrar deneyin.");
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Sunucu hatası: " + e.getMessage());
+            return ResponseUtil.error("Sunucu hatası: " + e.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     

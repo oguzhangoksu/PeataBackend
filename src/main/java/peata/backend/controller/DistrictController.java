@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import peata.backend.entity.District;
 import peata.backend.service.abstracts.DistrictService;
+import peata.backend.utils.ResponseUtil;
 
 
 @RestController
@@ -23,33 +24,50 @@ public class DistrictController {
     
     @Operation(summary = "Public API", description = "") 
     @GetMapping("/getAll")
-    public ResponseEntity<List<District>> getAll() {
-
-        List<District> districts = districtService.getAll();
-        return ResponseEntity.ok(districts);
+    public ResponseEntity<?> getAll() {
+        try {
+            List<District> districts = districtService.getAll();
+            return ResponseUtil.success("Districts fetched successfully.", districts);
+        } catch (Exception e) {
+            return ResponseUtil.error("Districts could not be fetched.");
+        }
     }
     
     
     @Operation(summary = "Public API", description = "") 
     @GetMapping("/getById")
-    public ResponseEntity<District> getById(@RequestParam("id") Long id) {
-
-        District district = districtService.getById(id);
-        return ResponseEntity.ok(district);
+    public ResponseEntity<?> getById(@RequestParam("id") Long id) {
+        try {
+            District district = districtService.getById(id);
+            if (district == null) {
+                return ResponseUtil.error("District not found.");
+            }
+            return ResponseUtil.success("District fetched successfully.", district);
+        } catch (Exception e) {
+            return ResponseUtil.error("District could not be fetched.");
+        }
     }
 
     @Operation(summary = "Public API", description = "")
     @GetMapping("/getDistrictsByCityId")
-    public ResponseEntity<List<District>> getDistrictsByCityId(@RequestParam("cityId") Long cityId) {
-        List<District> districts = districtService.getDistictbyCityId(cityId);
-        return ResponseEntity.ok(districts);
+    public ResponseEntity<?> getDistrictsByCityId(@RequestParam("cityId") Long cityId) {
+        try {
+            List<District> districts = districtService.getDistictbyCityId(cityId);
+            return ResponseUtil.success("Districts by city fetched successfully.", districts);
+        } catch (Exception e) {
+            return ResponseUtil.error("Districts by city could not be fetched.");
+        }
     }
 
     @Operation(summary = "Public API", description = "")
     @GetMapping("/getDistrictsByCountryId")
-    public ResponseEntity<List<District>> getDistrictsByCountryId(@RequestParam("countryId") Long countryId) {
-        List<District> districts = districtService.getDistictbyCountryId(countryId);
-        return ResponseEntity.ok(districts);
+    public ResponseEntity<?> getDistrictsByCountryId(@RequestParam("countryId") Long countryId) {
+        try {
+            List<District> districts = districtService.getDistictbyCountryId(countryId);
+            return ResponseUtil.success("Districts by country fetched successfully.", districts);
+        } catch (Exception e) {
+            return ResponseUtil.error("Districts by country could not be fetched.");
+        }
     }
 
     

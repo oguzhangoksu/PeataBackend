@@ -23,6 +23,7 @@ import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.S3Service;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
+import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.Requests.AddRequest;
 
 import java.io.IOException;
@@ -48,8 +49,8 @@ public class AdminPanelController {
     security = @SecurityRequirement(name = "bearerAuth")
     )     
     @GetMapping("/user/getAllUsers")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.allUsers());
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseUtil.success("All users fetched successfully.", userService.allUsers());
     }
 
 
@@ -58,9 +59,9 @@ public class AdminPanelController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/user/getUsersWithPagination")
-    public ResponseEntity<Page<User>> getUsersWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<?> getUsersWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
         
-        return ResponseEntity.ok(userService.getPaginatedUsers(page, size));
+        return ResponseUtil.success("Paginated users fetched successfully.", userService.getPaginatedUsers(page, size));
     }
 
 
@@ -69,8 +70,8 @@ public class AdminPanelController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/add/getAddsWithPagination")
-    public ResponseEntity<Page<AddDto>> getAddsWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(addService.getPaginatedAdds(page, size));
+    public ResponseEntity<?> getAddsWithPagination(@RequestParam(defaultValue = "0") int page,@RequestParam(defaultValue = "10") int size) {
+        return ResponseUtil.success("Paginated adds fetched successfully.", addService.getPaginatedAdds(page, size));
     }
 
 
@@ -79,8 +80,8 @@ public class AdminPanelController {
     security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/add/getAllAdds")
-    public ResponseEntity<List<Add>> getAllAdds() {
-        return ResponseEntity.ok(addService.allAdds());
+    public ResponseEntity<?> getAllAdds() {
+        return ResponseUtil.success("All adds fetched successfully.", addService.allAdds());
     }
 
     @Operation(summary = "Secured API ADMIN API ", 
@@ -88,15 +89,11 @@ public class AdminPanelController {
         security = @SecurityRequirement(name = "bearerAuth")
     )   
     @GetMapping("/add/delete")
-    public ResponseEntity<String> delete(@RequestParam Long id) {
+    public ResponseEntity<?> delete(@RequestParam Long id) {
         addService.delete(id);
-
-        return ResponseEntity.ok("Add deleted");
-        
+        return ResponseUtil.success("Add deleted");
     }
 
-
-    
     @Operation(summary = "Secured API ADMIN API", 
     description = "This endpoint requires authentication. Data Json'nın stringe dönüştürülmüş hali "+
     " örn:\n const jsonData=JSON.stringify({\r\n\n" + //
@@ -125,7 +122,6 @@ public class AdminPanelController {
             AddRequest addRequest = objectMapper.readValue(jsonData, AddRequest.class);
             User userDb=userService.findUserById(addRequest.getUser_id());
             List<FileData> fileDatas= new ArrayList<FileData>();
-            
             if(files.get(0).getOriginalFilename().equals("empty.txt")){
                 Add addDb=addService.findAddByIdWithOutDto(addRequest.getId());
                 addDb.setAge(addRequest.getAge());
@@ -139,7 +135,7 @@ public class AdminPanelController {
                 addDb.setPhone(addRequest.getPhone());
                 addDb.setEmail(addRequest.getEmail());
                 addDb.setUser(userDb);
-                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
+                return ResponseUtil.success("Add updated successfully.", addService.save(addDb,addDb.getUser()));
             }
             else{
                 for (MultipartFile file : files) {
@@ -148,10 +144,9 @@ public class AdminPanelController {
                         fileData.setFileName(file.getOriginalFilename());
                         fileData.setFileData(file.getBytes());
                         fileDatas.add(fileData);
-                        
                     } catch (IOException e) {
                         e.printStackTrace();
-                        return ResponseEntity.status(500).body("File upload failed."+file.getOriginalFilename()+" is not uploaded");
+                        return ResponseUtil.error("File upload failed. " + file.getOriginalFilename() + " is not uploaded", null, HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                 }
                 Add addDb=addService.findAddByIdWithOutDto(addRequest.getId());
@@ -168,15 +163,13 @@ public class AdminPanelController {
                 addDb.setPhone(addRequest.getPhone());
                 addDb.setEmail(addRequest.getEmail());
                 addDb.setUser(userDb);
-                return ResponseEntity.ok(addService.save(addDb,addDb.getUser()));
+                return ResponseUtil.success("Add updated successfully.", addService.save(addDb,addDb.getUser()));
             }
-            
-
         } catch (JsonProcessingException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid JSON data");
+            return ResponseUtil.error("Invalid JSON data", null, HttpStatus.BAD_REQUEST);
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("File upload failed.");
+            return ResponseUtil.error("File upload failed.", null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

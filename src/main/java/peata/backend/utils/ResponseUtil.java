@@ -1,5 +1,6 @@
 package peata.backend.utils;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
@@ -22,16 +23,20 @@ public class ResponseUtil {
     }
 
     public static ResponseEntity<Map<String, Object>> error(String message) {
-        return error(message, null);
+        return error(message, null, HttpStatus.BAD_REQUEST);
     }
 
     public static ResponseEntity<Map<String, Object>> error(String message, Object data) {
+        return error(message, data, HttpStatus.BAD_REQUEST);
+    }
+
+    public static ResponseEntity<Map<String, Object>> error(String message, Object data, HttpStatus status) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
         response.put("message", message);
         if (data != null) {
             response.put("data", data);
         }
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(status).body(response);
     }
 }

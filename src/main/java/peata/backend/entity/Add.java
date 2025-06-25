@@ -98,7 +98,7 @@ public class Add {
     @CreationTimestamp
     private Timestamp deactivatedAt;
 
-@    OneToMany(mappedBy = "add")
+    @OneToMany(mappedBy = "add")
     private List<ActivityLog> activityLogs;
 
     @JsonBackReference

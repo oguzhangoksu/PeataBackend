@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import peata.backend.service.abstracts.VersionService;
+import peata.backend.utils.ResponseUtil;
 
 @RestController
 @RequestMapping("api/version")
@@ -17,9 +18,13 @@ public class VersionController {
     private VersionService versionService;
 
     @GetMapping("/validate/{version}")
-    public ResponseEntity<Boolean> validateVersion(@PathVariable String version) {
-        boolean isValid = versionService.isValiadteVersion(version);
-        return ResponseEntity.ok(isValid);
+    public ResponseEntity<?> validateVersion(@PathVariable String version) {
+        try {
+            boolean isValid = versionService.isValiadteVersion(version);
+            return ResponseUtil.success("Version validation result.", isValid);
+        } catch (Exception e) {
+            return ResponseUtil.error("Version validation failed.");
+        }
     }
     
 }
