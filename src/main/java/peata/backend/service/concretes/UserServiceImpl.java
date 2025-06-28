@@ -307,9 +307,16 @@ public class UserServiceImpl implements UserService {
     
     public boolean deleteFavorite(User user,Long AddId){
         boolean adExists = user.getFavoriteAdds().stream()
-                             .anyMatch(add -> add == AddId);
+                             .anyMatch(add -> add.equals(AddId));
+        System.out.println("AddID: " + AddId);
+        System.out.println("user favorite: " + user.getFavoriteAdds());
+        System.out.println("Add Exist: " + adExists);
+
         if(adExists){
-            user.getFavoriteAdds().removeIf(ad -> ad == AddId);
+            user.getFavoriteAdds().removeIf(ad -> ad.equals(AddId));
+            System.out.println("Add Removed: " + AddId);
+            System.out.println("user favorite: " + user.getFavoriteAdds());
+
             userRepository.save(user);
             logger.info("Favorite ad with ID {} removed for user {}", AddId, user.getEmail());
             return true;
@@ -317,6 +324,7 @@ public class UserServiceImpl implements UserService {
         logger.warn("Ad with ID {} not found in user {}'s favorites", AddId, user.getEmail());
         return false;
     }
+    
 
     public boolean emailValidation(String email, String code) {
         if (!validateRegisterCode(email, code)) {
