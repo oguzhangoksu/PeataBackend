@@ -81,14 +81,14 @@ public class UserServiceImpl implements UserService {
         notificationServiceImpl.subscribeUserToCityDistrict(user.getEmail(), user.getCity(), user.getDistrict());
         dynamicListenerService.createListener(user.getCity(), user.getDistrict());
     
-        RegisterCode registerCode = new RegisterCode();
-        registerCode.setEmail(userDb.getEmail());
-        registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
-        registerCode.setCode(generateCode.generateVerificationCode());
-        registerCodeRepository.save(registerCode);
-        notificationServiceImpl.sendRegisterCode(registerCode.getEmail(),registerCode.getCode(),userDb.getLanguage());
+        // RegisterCode registerCode = new RegisterCode();
+        // registerCode.setEmail(userDb.getEmail());
+        // registerCode.setExpirationTime(LocalDateTime.now().plus(5, ChronoUnit.MINUTES));
+        // registerCode.setCode(generateCode.generateVerificationCode());
+        // registerCodeRepository.save(registerCode);
+        // notificationServiceImpl.sendRegisterCode(registerCode.getEmail(),registerCode.getCode(),userDb.getLanguage());
 
-        logger.info("Email verification message sent to RabbitMQ for email: {}", registerCode.getEmail());
+        // logger.info("Email verification message sent to RabbitMQ for email: {}", registerCode.getEmail());
         logger.info("User saved successfully with ID: {}", userDb.getId());
         return userDb;
     }
