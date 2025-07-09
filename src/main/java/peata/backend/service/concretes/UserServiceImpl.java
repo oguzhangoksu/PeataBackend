@@ -93,8 +93,6 @@ public class UserServiceImpl implements UserService {
         return userDb;
     }
 
-
-
     public Boolean updateUser(String currentUsername,UserUpdateRequest user) {
         Optional<User> optionalUserDb = userRepository.findByUsername(currentUsername);
         if (optionalUserDb.isEmpty()) {

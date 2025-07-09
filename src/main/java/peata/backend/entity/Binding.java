@@ -32,8 +32,8 @@ public class Binding {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name="listing_id", nullable = false)
-    private Long listingId;
+    @Column(name="add_id", nullable = false)
+    private Long addId;
 
     @Column(name="owner_id", nullable = false)
     private Long ownerId;

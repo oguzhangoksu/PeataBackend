@@ -46,10 +46,10 @@ public class ChatMessage {
 
     @Column(name="sent_at", nullable = false)
     @CreationTimestamp
-    private Timestamp sent_at;
+    private Timestamp sentAt;
 
     @Column(name="is_read", nullable = false)
-    private boolean isRead;
+    private boolean isRead = false;
 
     @ManyToOne
     @JoinColumn(name="binding_id", nullable = false)
