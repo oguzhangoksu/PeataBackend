@@ -4,13 +4,12 @@ import lombok.Data;
 import peata.backend.entity.ChatMessage;
 @Data
 public class MessageRequest {
-
-    private Long senderId;
+    private Long addId;
     private String content;
 
-    public ChatMessage toChatMessage() {
+    public ChatMessage toChatMessage(Long senderId) {
         ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setSenderId(this.senderId);
+        chatMessage.setSenderId(senderId);
         chatMessage.setContent(this.content);
         return chatMessage;
     }

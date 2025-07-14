@@ -61,7 +61,7 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "adminpanel/*",
-        "/api/ws-chat/**"
+        "/ws/ws-chat/**",
 
     };
     @Bean
@@ -70,7 +70,6 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
-                    .requestMatchers("/test/api/ws-chat/*").permitAll()
                     .requestMatchers(PUBLIC_URLS).permitAll()
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     .requestMatchers("/panel/**").hasRole("ADMIN")
