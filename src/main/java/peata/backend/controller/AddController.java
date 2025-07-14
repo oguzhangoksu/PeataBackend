@@ -387,7 +387,9 @@ public class AddController {
     @PostMapping("/update/Info")
     public ResponseEntity<String> addInfo(UpdateAddInfoRequest addInfoRequest,@AuthenticationPrincipal UserPrincipal userPrincipal)  {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
-        if(addInfoRequest.getUser_id() == user.getId()){
+        //değiştirildi
+        
+        if(addInfoRequest.getUser_id().equals(user.getId())){
             addService.updateAddDto(addInfoRequest);
             logger.info("User {} successfully updated ad info for ad id: {}", user.getUsername(), addInfoRequest.getId());
             return ResponseEntity.ok("Add Info updated successfully.");

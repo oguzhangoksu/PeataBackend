@@ -262,6 +262,7 @@ public class UserController {
     @Operation(summary = "Secured API", description = "Validates the provided verification code and email, and updates the user's password if the verification is successful.", security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping("/changePassword")
     public ResponseEntity<String> changePassword(@RequestBody ChangePassword changePassword) {
+        
         if (userService.validateVerificationCode(changePassword.getEmail(), changePassword.getCode())) {
             userService.updatePassword(changePassword.getEmail(), changePassword.getNewPassword());
             logger.info("Password changed successfully for email: {}", changePassword.getEmail());

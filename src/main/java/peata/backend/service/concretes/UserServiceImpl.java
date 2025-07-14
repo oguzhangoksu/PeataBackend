@@ -262,13 +262,13 @@ public class UserServiceImpl implements UserService {
 
 
     public boolean validateVerificationCode(String email, String code) {
-        List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmail(email);
+        //değiştirildi
+        List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmailOrderByExpirationTimeAsc(email);
         if (listPasswordResetCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
             return false; 
         }
         PasswordResetCode lastOne=listPasswordResetCode.get(listPasswordResetCode.size()-1);
-
         if (lastOne.getCode().equals(code) && lastOne.getEmail().equals(email)) {
             logger.info("Verification code validated for email: {}", email);
             return  lastOne.getExpirationTime().isAfter(LocalDateTime.now());
@@ -346,13 +346,18 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean validateRegisterCode(String email, String code) {
-        List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmail(email);
+        System.out.println("Email:"+email);
+        System.out.println("Code:" +code);
+        //değiştirildi
+        List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmailOrderByExpirationTimeAsc(email);
         if (listRegisterCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
-            return false; // No tokens found for the given email
+            return false; 
         }
         RegisterCode lastOne=listRegisterCode.get(listRegisterCode.size()-1);
-
+        System.out.println("LastOne.getCode: " + lastOne.getCode());
+        System.out.println("LastOne.getEmail: " + lastOne.getEmail());
+        System.out.println("LastOne.getExpirationTime: " + lastOne.getExpirationTime());
         if (lastOne.getCode().equals(code) && lastOne.getEmail().equals(email)) {
             logger.info("Verification email code validated {}", email);
             return  lastOne.getExpirationTime().isAfter(LocalDateTime.now());
@@ -404,8 +409,8 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language) {
-        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail,language );
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail) {
+        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail);
     }
 
 

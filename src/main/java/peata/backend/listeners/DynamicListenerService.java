@@ -119,9 +119,9 @@ public class DynamicListenerService {
     private void handleMessage(String city, String district, String message, String publisherEmail, List<String> imageUrls ,String pCode,String addType,String language) {
         logger.info("Received message in " + city + "/" + district + ": " + message);
         
-
         List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail,language);
-        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail,language);
+        //değiştirildi
+        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail);
 
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
