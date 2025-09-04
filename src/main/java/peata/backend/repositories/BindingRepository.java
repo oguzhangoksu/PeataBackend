@@ -14,4 +14,8 @@ public interface BindingRepository extends JpaRepository<Binding, Long> {
     List<Binding> findByOwnerId(Long ownerId);
     
     List<Binding> findByRequesterId(Long requesterId);
+
+    List<Binding> findAllByOwnerId(Long ownerId);
+
+    List<Binding> findAllByRequesterId(Long requesterId);
 }

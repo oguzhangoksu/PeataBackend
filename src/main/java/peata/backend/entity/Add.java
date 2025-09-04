@@ -33,8 +33,6 @@ import lombok.ToString;
 
 public class Add {
 
-
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

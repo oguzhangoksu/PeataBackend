@@ -1,7 +1,6 @@
 package peata.backend.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +15,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import peata.backend.dtos.AddDto;
 import peata.backend.entity.Add;
+import peata.backend.entity.Suggestions;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.S3Service;
+import peata.backend.service.abstracts.SuggestionsService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.FileData;
 import peata.backend.utils.ResponseUtil;
@@ -42,6 +42,9 @@ public class AdminPanelController {
 
     @Autowired
     private S3Service s3Service;
+
+    @Autowired
+    private SuggestionsService suggestionService; ;
 
 
     @Operation(summary = "Secured by ADMIN API", 
@@ -82,6 +85,15 @@ public class AdminPanelController {
     @GetMapping("/add/getAllAdds")
     public ResponseEntity<?> getAllAdds() {
         return ResponseUtil.success("All adds fetched successfully.", addService.allAdds());
+    }
+    @Operation(summary = "Secured API ADMIN API ", 
+        description = "This endpoint requires authentication.",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )   
+    @GetMapping("/suggestion/getAll")
+    public ResponseEntity<?> getAllSuggestion() {
+        List<Suggestions> suggestions = suggestionService.findAll();
+        return ResponseUtil.success("Add deleted", suggestions);
     }
 
     @Operation(summary = "Secured API ADMIN API ", 

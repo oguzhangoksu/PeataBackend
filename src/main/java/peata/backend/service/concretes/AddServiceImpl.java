@@ -181,6 +181,11 @@ public class AddServiceImpl implements AddService{
         Page<Add> adds = addRepository.findAll(PageRequest.of(page, size));
         return adds.map(this::convertToDto);
     }
+    public Page<AddDto> getPaginatedAddsActive(int page, int size) {
+        logger.info("Fetching paginated ads: page {}, size {}", page, size);
+        Page<Add> adds = addRepository.findAllActive(true, PageRequest.of(page, size));
+        return adds.map(this::convertToDto);
+    }
 
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size){
         logger.info("Fetching paginated ads with status {}: page {}, size {}", status, page, size);
@@ -200,7 +205,7 @@ public class AddServiceImpl implements AddService{
     }
     public Page<AddDto> getPaginatedAddswithCountryId(int countryId,int page, int size){
         logger.info("Fetching paginated ads with countryId {}: page {}, size {}", countryId, page, size);
-        Page<Add> adds = addRepository.findByCountryId(countryId,PageRequest.of(page, size));
+        Page<Add> adds = addRepository.findActiveByCountry(true,countryId,PageRequest.of(page, size));
 
         return adds.map(this::convertToDto);
     }
@@ -292,6 +297,11 @@ public class AddServiceImpl implements AddService{
 
     }
 
+    public String firstImageUrl(Long addId){
+        Add add = addRepository.findById(addId)
+            .orElseThrow(() -> new EntityNotFoundException("Add with ID " + addId + " not found"));
+        return add.getImages().isEmpty() ? null : add.getImages().get(0);
+    }
 
     private List<String> extractFolderAndFileName(String url) {
         String path = url.replaceFirst("https://[^/]+/", "");
@@ -306,7 +316,6 @@ public class AddServiceImpl implements AddService{
 
         return result;
     }
-
 
    
 

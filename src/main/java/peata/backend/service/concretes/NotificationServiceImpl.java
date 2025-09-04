@@ -104,7 +104,7 @@ public class NotificationServiceImpl {
 
         rabbitTemplate.convertAndSend(EXCHANGE_REGISTER_NAME, ROUTING_REGISTER_KEY, message);
 
-        logger.info("Verification code message sent for email: {}", email);
+        logger.info("Register code message sent for email: {}", email);
 
     }
 

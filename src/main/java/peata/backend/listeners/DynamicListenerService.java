@@ -6,7 +6,6 @@ import java.util.Map;
 
 import java.nio.charset.StandardCharsets;
 
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import jakarta.mail.MessagingException;
 
@@ -30,11 +28,7 @@ import peata.backend.core.RabbitMqConfig;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.service.concretes.EmailServiceImpl;
 import peata.backend.service.concretes.NotificationServiceImpl;
-import peata.backend.utils.CustomMessageConverter;
-import com.google.firebase.messaging.Notification;
 import org.springframework.amqp.core.MessageListener;
-import org.springframework.amqp.core.MessageProperties;
-import com.google.firebase.messaging.Message;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Queue;
@@ -117,8 +111,8 @@ public class DynamicListenerService {
         
 
         List<String> userEmails = userService.findEmailsByCityAndDistrictOnValidateEmail(city, district, publisherEmail,language);
-        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail,language);
-
+        List<String> userDeviceTokens = userService.getAllUsersDeviceToken(city, district, publisherEmail);
+        
         for (int i = 0; i < userEmails.size(); i += BATCH_SIZE) {
             List<String> batch = userEmails.subList(i, Math.min(userEmails.size(), i + BATCH_SIZE));
             emailServiceImpl.sendBatchEmails(batch, message, publisherEmail, imageUrls,pCode,language);
@@ -206,7 +200,7 @@ public class DynamicListenerService {
         String language = message.get("language");
 
         if (email == null || code == null) {
-            logger.warn("Message missing required fields: email={}, code={}", email, code);
+            logger.warn("Message missing required fields1: email={}, code={}", email, code);
             return;
         }
 
@@ -231,7 +225,7 @@ public class DynamicListenerService {
    private MessageListener createMessageListener() {
         return message -> {
             String queueName = message.getMessageProperties().getConsumerQueue();
-            if(queueName =="register-email-queue"){
+            if(queueName.equals("register-email-queue")){
                 try {
                     logger.info("Received message: {}", new String(message.getBody()));
 
@@ -241,10 +235,10 @@ public class DynamicListenerService {
                     String email = messageData.get("email");
                     String code = messageData.get("code");
                     String language = messageData.get("language");
-
+                    System.out.println("Parsed email: " + email + ", code: " + code + ", language: " + language);
                     // Eğer eksik değer varsa logla ve işlemi sonlandır
                     if (email == null || code == null) {
-                        logger.warn("Message missing required fields: email={} code={} language={}", email, code, language);
+                        logger.warn("Message missing required fields2: email={} code={} language={}", email, code, language);
                         return;
                     }
 
@@ -265,7 +259,7 @@ public class DynamicListenerService {
                     String code = messageData.get("code");
                     String language = messageData.get("language");
                     if (email == null || code == null) {
-                        logger.warn("Message missing required fields: email={} code={}", email, code);
+                        logger.warn("Message missing required fields3: email={} code={}", email, code);
                         return;
                     }
                     emailServiceImpl.sendVerificationCode(email, code, language);  
@@ -282,7 +276,7 @@ public class DynamicListenerService {
 
     private Map<String, String> parseMessage(String messageBody) {
         Map<String, String> messageData = new HashMap<>();
-
+        messageBody = messageBody.trim().replaceAll("^\"|\"$", "");
         String[] pairs = messageBody.split(", ");
         for (String pair : pairs) {
             String[] keyValue = pair.split("=");

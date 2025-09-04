@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,6 +48,12 @@ public class Binding {
     private Timestamp createdAt;
 
     @OneToMany(mappedBy = "binding")
+    @JsonIgnoreProperties("binding") 
+    private List<ActivityLog> activityLogs;
+
+    @OneToMany(mappedBy = "binding")
+    @JsonIgnoreProperties("binding")
     private List<ChatMessage> chatMessages;
+
 
 }

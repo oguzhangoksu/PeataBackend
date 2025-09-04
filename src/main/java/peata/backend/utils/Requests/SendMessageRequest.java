@@ -1,7 +1,8 @@
 package peata.backend.utils.Requests;
 
 import lombok.Data;
+
 @Data
-public class initiateChatRequest {
-    private Long addId;
+public class SendMessageRequest {
+    private String message;
 }

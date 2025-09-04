@@ -37,8 +37,9 @@ public interface UserService {
     public Boolean updateUser(String currentUsername,UserUpdateRequest user);
     public boolean addNewDevice(String username, String deviceToken);
     public boolean deleteDevice(String username, String deviceToken);
-    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language);
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail);
     public boolean changeLanguage(String username, String language);
     public boolean isOwenedAdd(String username,Long id);
-
+    public boolean blockUser(User blocker, User blocked);
+    public boolean unblockUser(User blocker, User blocked);
 } 

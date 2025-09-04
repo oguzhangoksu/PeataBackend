@@ -1,23 +1,20 @@
 package peata.backend.service.concretes;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
+import java.util.Set;
 
-import java.time.LocalDateTime;
-
-import java.time.temporal.ChronoUnit;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -36,7 +33,6 @@ import peata.backend.repositories.UserRepository;
 import peata.backend.service.abstracts.AddService;
 import peata.backend.service.abstracts.UserService;
 import peata.backend.utils.GenerateCode;
-
 import peata.backend.utils.Requests.UserUpdateRequest;
 
 
@@ -272,7 +268,7 @@ public class UserServiceImpl implements UserService {
 
 
     public boolean validateVerificationCode(String email, String code) {
-        List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmail(email);
+        List<PasswordResetCode>listPasswordResetCode= passwordResetCodeRepository.findByEmailOrderByExpirationTimeAsc(email);
         if (listPasswordResetCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
             return false; 
@@ -361,10 +357,10 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean validateRegisterCode(String email, String code) {
-        List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmail(email);
+        List<RegisterCode>listRegisterCode= registerCodeRepository.findByEmailOrderByExpirationTimeAsc(email);
         if (listRegisterCode.isEmpty()) {
             logger.warn("No verification codes found for email: {}", email);
-            return false; // No tokens found for the given email
+            return false; 
         }
         RegisterCode lastOne=listRegisterCode.get(listRegisterCode.size()-1);
 
@@ -419,11 +415,61 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail, String language) {
-        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail,language );
+    public List<String> getAllUsersDeviceToken(String city, String district, String excludeEmail) {
+        return userDeviceRepository.findDeviceTokensByCityAndDistrict(city, district,excludeEmail);
     }
 
-
+    public boolean blockUser(User blocker, User blocked) {
+        if (blocker.getId().equals(blocked.getId())) {
+            logger.warn("User cannot block themselves: {}", blocker.getUsername());
+            return false;
+        }
+        if (blocker.getBlockedUsers() != null && blocker.getBlockedUsers().contains(blocked)) {
+            logger.info("User {} is already blocked by {}", blocked.getUsername(), blocker.getUsername());
+            return true; 
+        }
+        try {
+            if(!blocker.getBlockedUsers().contains(blocked)){
+                blocker.getBlockedUsers().add(blocked);
+                userRepository.save(blocker);
+            }
+            if(!blocked.getBlockedBy().contains(blocker)){
+                blocked.getBlockedBy().add(blocker);
+                userRepository.save(blocked);
+            }
+            logger.info("User {} successfully blocked user {}", blocker.getUsername(), blocked.getUsername());
+            return true;
+        } catch (Exception e) {
+            logger.error("Error removing ads from feed during block operation: {}", e.getMessage());
+            return false;
+        }
+        
+    }
+    
+    public boolean unblockUser(User blocker, User blocked) {
+        
+        if (blocker.getBlockedUsers() == null || !blocker.getBlockedUsers().contains(blocked)) {
+            logger.info("User {} is not blocked by {}", blocked.getUsername(), blocker.getUsername());
+            return true; 
+        }
+        try {
+            if(blocker.getBlockedUsers().contains(blocked)){
+                blocker.getBlockedUsers().remove(blocked);
+                userRepository.save(blocker);
+            }
+            if(blocked.getBlockedBy().contains(blocker)){
+                blocked.getBlockedBy().remove(blocker);
+                userRepository.save(blocked);
+            }
+            logger.info("User {} successfully blocked user {}", blocker.getUsername(), blocked.getUsername());
+            return true;
+        }
+        catch (Exception e) {
+            logger.error("Error blocking user {} by {}: {}", blocked.getUsername(), blocker.getUsername(), e.getMessage());
+            return false;
+        }
+    }
+   
     public User mapUserDtoToUser(UserDto userDto) {
         User user = new User();
         user.setUsername(userDto.getUsername());

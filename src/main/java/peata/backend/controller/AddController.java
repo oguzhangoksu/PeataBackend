@@ -33,7 +33,6 @@ import peata.backend.utils.Responses.AddResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Iterator;
 
 
@@ -148,7 +146,7 @@ public class AddController {
     )   
     @GetMapping("/getPaginatedAdds")
     public ResponseEntity<?> getPaginatedAdds(@RequestParam int page,@RequestParam int size) {
-        Page<AddDto> addDtos=addService.getPaginatedAdds(page,size);
+        Page<AddDto> addDtos=addService.getPaginatedAddsActive(page,size);
         logger.info("Successfully retrieved {} adds for page {} with size {}", addDtos.getTotalElements(), page, size);
         return ResponseUtil.success("Paginated adds retrieved", addDtos);
     }
@@ -375,7 +373,7 @@ public class AddController {
     @PostMapping("/update/Info")
     public ResponseEntity<?> addInfo(UpdateAddInfoRequest addInfoRequest,@AuthenticationPrincipal UserPrincipal userPrincipal)  {
         User user =userService.findUserByUsername(userPrincipal.getUsername());
-        if(addInfoRequest.getUser_id() == user.getId()){
+        if(addInfoRequest.getUser_id().equals(user.getId())){
             addService.updateAddDto(addInfoRequest);
             logger.info("User {} successfully updated ad info for ad id: {}", user.getUsername(), addInfoRequest.getId());
             return ResponseUtil.success("Add Info updated successfully.");

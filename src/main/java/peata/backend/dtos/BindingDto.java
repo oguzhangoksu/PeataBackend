@@ -3,6 +3,7 @@ package peata.backend.dtos;
 import com.google.api.client.util.DateTime;
 
 import lombok.Data;
+import peata.backend.entity.Binding;
 
 @Data
 public class BindingDto {
@@ -12,7 +13,7 @@ public class BindingDto {
     private Long requesterId;
     private DateTime createdAt;
    
-    public BindingDto convertFromEntity(peata.backend.entity.Binding binding) {
+    public BindingDto convertFromEntity(Binding binding) {
         this.id = binding.getId();
         this.addId = binding.getAddId();
         this.ownerId = binding.getOwnerId();

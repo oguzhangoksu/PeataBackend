@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import peata.backend.dtos.ActivityLogDto;
 import peata.backend.entity.ActivityLog;
 import peata.backend.entity.Add;
+import peata.backend.entity.Binding;
 import peata.backend.entity.User;
 import peata.backend.repositories.ActivityLogRepository;
 import peata.backend.service.abstracts.ActivityLogService;
@@ -26,6 +27,39 @@ public class ActivityLogServiceImpl implements ActivityLogService {
             }
             if(add !=null){
                 activityLog.setAdd(add);
+            }
+            activityLog.setContent(activityLogDto.getContent());
+            activityLog.setActivityType(activityLogDto.getActivityType());
+            activityLogRepository.save(activityLog);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+     public boolean saveActivityLog(ActivityLogDto activityLogDto,User user) {
+        try {
+            ActivityLog activityLog = new ActivityLog();
+            if(user !=null){
+                activityLog.setUser(user);
+            }
+            activityLog.setContent(activityLogDto.getContent());
+            activityLog.setActivityType(activityLogDto.getActivityType());
+            activityLogRepository.save(activityLog);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean saveActivityLogBinding(ActivityLogDto activityLogDto, User user, Binding binding) {
+        try {
+            ActivityLog activityLog = new ActivityLog();
+            if(user !=null){
+                activityLog.setUser(user);
+            }
+            if(binding !=null){
+                activityLog.setBinding(binding);
             }
             activityLog.setContent(activityLogDto.getContent());
             activityLog.setActivityType(activityLogDto.getActivityType());

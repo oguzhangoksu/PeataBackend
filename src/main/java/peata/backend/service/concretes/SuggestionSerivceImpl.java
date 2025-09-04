@@ -1,5 +1,7 @@
 package peata.backend.service.concretes;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,13 @@ public class SuggestionSerivceImpl implements SuggestionsService{
         suggestion.setSuggestion(suggestionRequest.getSuggestion()); 
     
         return suggestion;
+    }
+
+    public Suggestions findById(Long id) {
+        return suggestionsRepository.findById(id).orElse(null);
+    }
+    public List<Suggestions> findAll() {
+        return suggestionsRepository.findAll();
     }
     
 }

@@ -10,5 +10,6 @@ import java.util.List;
 
 public interface PasswordResetCodeRepository extends JpaRepository<PasswordResetCode,Long>{
     List<PasswordResetCode> findByEmail(String email);
+    List<PasswordResetCode> findByEmailOrderByExpirationTimeAsc(String email);
     void deleteByEmail(String email);
 }

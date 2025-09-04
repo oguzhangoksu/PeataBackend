@@ -5,24 +5,32 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
+import javax.crypto.SecretKey;
 import java.util.logging.Logger;
 import java.util.Date;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Value;
 @Component
 public class JwtProvider {
 
-    @Value("${JWT_SECRET}")
+    @Value("${app.jwt.secret}")
     private String jwtSecret; 
-    // private final SecretKey jwtSecret = Keys.secretKeyFor(SignatureAlgorithm.HS512); // Use a stronger key in production
-    private final long jwtExpirationMs = 7776000000L; // 24 hours
-    Logger logger = Logger.getLogger(this.getClass().getName());
     
+    @Value("${app.jwt.expiration}")
+    private long jwtExpirationMs;
+    
+    Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(Authentication authentication) {
-        // System.out.println("KEY:" + Base64.getEncoder().encodeToString(jwtSecret.getEncoded()));
-        System.out.println("jwtSecret:"+jwtSecret);
+        System.out.println("jwtSecret:" + jwtSecret);
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         System.out.println("User Principal: " + userPrincipal.toString());
         return Jwts.builder()
@@ -30,17 +38,25 @@ public class JwtProvider {
                 .claim("roles", userPrincipal.getAuthorities()) // Include roles in claims
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public String getUsernameFromJwtToken(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
     public boolean validateJwtToken(String token) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
             return true;
         } 
          catch (JwtException e) {

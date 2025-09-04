@@ -1,7 +1,7 @@
 package peata.backend.utils.Requests;
-
 import lombok.Data;
+
 @Data
-public class initiateChatRequest {
-    private Long addId;
+public class VersionRequest {
+    private String version;
 }

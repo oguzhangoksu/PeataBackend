@@ -1,14 +1,9 @@
 package peata.backend.utils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +46,8 @@ public class RateLimitFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String ipAddress = getClientIP(httpRequest);
+        String requestUri = httpRequest.getRequestURI();
+        
         if (shouldLogIp(ipAddress)) {
             logger.info("Request IP: {}", ipAddress);
         }
@@ -59,6 +56,11 @@ public class RateLimitFilter implements Filter {
             HttpServletResponse httpResponse = (HttpServletResponse) response;
             httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
             httpResponse.getWriter().write("Your IP is banned.");
+            return;
+        }
+
+        if (isChatApiEndpoint(requestUri)) {
+            chain.doFilter(request, response);
             return;
         }
 
@@ -95,5 +97,15 @@ public class RateLimitFilter implements Filter {
             return true;
         }
         return false;
+    }
+
+    private boolean isChatApiEndpoint(String requestUri) {
+        System.out.println("Request URI: " + requestUri);
+        return requestUri != null && (
+            requestUri.startsWith("/test/api/chat/") ||
+            requestUri.startsWith("/api/chat/") ||
+            requestUri.matches("/api/messages/\\d+") ||
+            requestUri.matches("/test/api/messages/\\d+")
+        );
     }
 }

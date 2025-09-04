@@ -45,6 +45,10 @@ public class ActivityLog {
     @JoinColumn(name="add_id")
     private Add add;
 
+    @ManyToOne
+    @JoinColumn(name="binding_id")
+    private Binding binding;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "activity_type")
     private ActivityType activityType;

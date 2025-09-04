@@ -25,6 +25,7 @@ public interface AddService {
     public List<Add> allAdds();
     public List<String> findImagesByAddId(Long id);
     public Page<AddDto> getPaginatedAdds(int page, int size);
+    public Page<AddDto> getPaginatedAddsActive(int page, int size);
     public Page<AddDto> getPaginatedAddswithStatus(int status,int page, int size);
     public Add save(Add add,User user);
     public boolean existsById(Long id);
@@ -34,6 +35,6 @@ public interface AddService {
     public AddDto findAddByPcode(String pCode);
     public List<AddDto> findAddsbyCountryId(int countryId);
     public Page<AddDto> getPaginatedAddswithCountryId(int countryId,int page, int size);
-
+    public String firstImageUrl(Long addId);
 
 }

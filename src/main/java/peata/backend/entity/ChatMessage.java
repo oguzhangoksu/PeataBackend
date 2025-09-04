@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -53,6 +55,7 @@ public class ChatMessage {
 
     @ManyToOne
     @JoinColumn(name="binding_id", nullable = false)
+    @JsonIgnoreProperties("chatMessages")
     private Binding binding; 
 
 }

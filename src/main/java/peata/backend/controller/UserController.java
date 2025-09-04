@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import peata.backend.entity.Add;
 import peata.backend.entity.User;
 import peata.backend.service.abstracts.ActivityLogService;
 import peata.backend.service.abstracts.UserService;
@@ -23,7 +22,6 @@ import peata.backend.utils.ResponseUtil;
 import peata.backend.utils.UserPrincipal;
 import peata.backend.utils.Enums.ActivityType;
 import peata.backend.utils.Mapper.UserResponseMapper;
-import peata.backend.utils.Requests.AddComplaint;
 import peata.backend.utils.Requests.ChangePassword;
 import peata.backend.utils.Requests.EmailRequest;
 import peata.backend.utils.Requests.EmailValidationRequest;
@@ -47,9 +45,7 @@ import jakarta.persistence.EntityNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("api/user")
@@ -371,8 +367,6 @@ public class UserController {
             return ResponseUtil.error("You are not authorized to delete this user.");
         }
     }
-
-
 
     private String handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         if (e.getMessage().contains("Key (username)")) {
